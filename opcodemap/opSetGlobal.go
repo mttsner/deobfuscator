@@ -1,5 +1,8 @@
 package opcodemap
 
-var opSetGlobal = map[string]string{
-	"Env[Inst[OP_B]] = Stk[Inst[OP_A]];" : "OpSetGlobal",
+const strSetGlobal = "Env[Inst[OP_B]] = Stk[Inst[OP_A]];"
+
+func (instruction *Instruction) createSetGlobal() uint32 {
+	instruction.B--
+	return instruction.createABx(opSETGLOBAL)
 }

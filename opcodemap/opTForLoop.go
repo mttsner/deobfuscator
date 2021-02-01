@@ -1,7 +1,7 @@
 package opcodemap
 
-var opTForLoop = map[string]string{
-	`local A = Inst[OP_A];
+const strTForLoop = `
+	local A = Inst[OP_A];
 	local C = Inst[OP_C];
 	local CB = A + 2
 	local Result = {Stk[A](Stk[A + 1],Stk[CB])};
@@ -14,5 +14,10 @@ var opTForLoop = map[string]string{
 		InstrPoint = Inst[OP_B];
 	else
 		InstrPoint = InstrPoint + 1;
-	end;` : "OpTForLoop",
+	end;
+`
+
+func (instruction *Instruction) createTForLoop() uint32 {
+	instruction.B = 0
+	return instruction.createABC(opTFORLOOP)
 }

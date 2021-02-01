@@ -1,5 +1,7 @@
 package opcodemap
 
-var opLen = map[string]string{
-	"Stk[Inst[OP_A]]=#Stk[Inst[OP_B]];" : "OpLen",
+const strLen = "Stk[Inst[OP_A]]=#Stk[Inst[OP_B]];"
+
+func (instruction *Instruction) createLen() uint32 {
+	return instruction.createABC(opLEN)
 }

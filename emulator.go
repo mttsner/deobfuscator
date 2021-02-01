@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 )
 
-func (data *vmdata) read(bs []byte) []byte{
+func (data *vmdata) read(bs []byte) []byte {
 	for i, b := range bs {
 		bs[i] = b ^ data.Key
 		if data.Obfuscator.Name == "PSU" {
@@ -17,12 +17,8 @@ func (data *vmdata) read(bs []byte) []byte{
 }
 
 func (data *vmdata) gBits8() int {
-	F := data.Bytecode[data.Pos] ^ data.Key
-	if data.Obfuscator.Name == "PSU" {
-		data.Key = byte(math.Mod(float64(F), 256))
-	} 
-	data.Pos++
-	return int(F)
+	d := data.read(data.Bytecode[data.Pos:data.Pos+1])
+	return int(d[0])
 }
 
 func (data *vmdata) gBits16() int {
@@ -44,7 +40,8 @@ func (data *vmdata) gFloat() float64 {
 
 func (data *vmdata) gString() string {
 	length := int(data.gBits32())
-	return string(data.read(data.Bytecode[data.Pos:data.Pos+length]))
+	d := data.Bytecode[data.Pos:data.Pos+length]
+	return string(data.read(d))
 }
 
 func gBit(num, start, end int) int {

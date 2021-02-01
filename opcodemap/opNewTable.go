@@ -1,5 +1,7 @@
 package opcodemap
 
-var opNewTable = map[string]string{
-	"Stk[Inst[OP_A]]={};" : "OpNewTableB0",
+const strNewTableB0 = "Stk[Inst[OP_A]]={};"
+
+func (instruction *Instruction) createNewTableB0() uint32 {
+	return instruction.createABC(opNEWTABLE)
 }

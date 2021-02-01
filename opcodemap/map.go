@@ -1,163 +1,180 @@
 package opcodemap
 
+const (
+	opMOVE int = iota
+	opLOADK
+	opLOADBOOL
+	opLOADNIL
+	opGETUPVAL
+	opGETGLOBAL
+	opGETTABLE
+	opSETGLOBAL
+	opSETUPVAL
+	opSETTABLE
+	opNEWTABLE
+	opSELF
+	opADD
+	opSUB
+	opMUL
+	opDIV
+	opMOD
+	opPOW
+	opUNM
+	opNOT
+	opLEN
+	opCONCAT
+	opJMP
+	opEQ
+	opLT
+	opLE
+	opTEST
+	opTESTSET
+	opCALL
+	opTAILCALL
+	opRETURN
+	opFORLOOP
+	opFORPREP
+	opTFORLOOP
+	opSETLIST
+	opCLOSE
+	opCLOSURE
+	opVARARG
+)
 
-// Map returns all the opcodes as array
-func Map() []map[string]string {
-	return []map[string]string{
-		opDiv, opGetTable, opLoadBool, opMul, opPushStk, opSetTable, opTestSet, 
-		opAdd, opEq, opGetUpval, opLoadK, opNe, opReturn, opSetTop, opTForLoop, 
-		opCall, opForLoop, opGt, opLoadNil, opNewStk, opSelf, opSetUpval, opUnm, 
-		opClose, opForPrep, opJmp, opLt, opNewTable, opSetFEnv, opSub, opVarArg, 
-		opClosure, opGe, opLe, opMod, opNot, opSetGlobal, opTailCall, 
-		opConcat, opGetGlobal, opLen, opMove, opPow, opSetList, opTest, delimiter,
-	}
-}
-
-var voptoop = map[string]int{
+// OpCodes maps vm function strings to functions that create the correct opcode representation of that function.
+var OpCodes = map[string]func(*Instruction) uint32{
 	// MOVE
-	"OpMove" : 0,
+	strMove: (*Instruction).createMove,
 	// LOADK
-	"OpLoadK" : 1,
+	strLoadK: (*Instruction).createLoadK,
 	// LOADBOOL
-	"OpLoadBool" : 2,
-	"OpLoadBoolC" : 2,
+	strLoadBool:  (*Instruction).createLoadBool,
+	strLoadBoolC: (*Instruction).createLoadBoolC,
 	// LOADNIL
-	"OpLoadNil" : 3,
+	strLoadNil: (*Instruction).createLoadNil,
 	// GETUPVAL
-	"OpGetUpval" : 4,
+	strGetUpval: (*Instruction).createGetUpval,
 	// GETGLOBAL
-	"OpGetGlobal" : 5,
+	strGetGlobal: (*Instruction).createGetGlobal,
 	// GETTABLE
-	"OpGetTable" : 6,
-	"OpGetTableConst" : 6,
-	// SETGLOBAL
-	"OpSetGlobal" : 7,
+	strGetTable:      (*Instruction).createGetTable,
+	strGetTableConst: (*Instruction).createGetTableConst,
 	// SETUPVAL
-	"OpSetUpval" : 8,
+	strSetUpval: (*Instruction).createSetUpval,
 	// SETTABLE
-	"OpSetTable" : 9,
-	"OpSetTableB" : 9,
-	"OpSetTableC" : 9,
-	"OpSetTableBC" : 9,
+	strSetTable:   (*Instruction).createSetTable,
+	strSetTableB:  (*Instruction).createSetTableB,
+	strSetTableC:  (*Instruction).createSetTableC,
+	strSetTableBC: (*Instruction).createSetTableBC,
 	// NEWTABLE
-	"OpNewTableB0" : 10,
+	strNewTableB0: (*Instruction).createNewTableB0,
 	// SELF
-	"OpSelf" : 11,
-	"OpSelfC" : 11,
+	strSelf:  (*Instruction).createSelf,
+	strSelfC: (*Instruction).createSelfC,
 	// ADD
-	"OpAddB" : 12,
-	"OpAddC" : 12,
-	"OpAddBC" : 12,
-	"OpAdd" : 12,
+	strAdd:   (*Instruction).createAdd,
+	strAddB:  (*Instruction).createAddB,
+	strAddC:  (*Instruction).createAddC,
+	strAddBC: (*Instruction).createAddBC,
 	// SUB
-	"OpSub" : 13,
-	"OpSubB" : 13,
-	"OpSubC" : 13,
-	"OpSubBC" : 13,
+	strSub:   (*Instruction).createSub,
+	strSubB:  (*Instruction).createSubB,
+	strSubC:  (*Instruction).createSubC,
+	strSubBC: (*Instruction).createSubBC,
 	// MUL
-	"OpMulC" : 14,
-	"OpMulBC" : 14,
-	"OpMul" : 14,
-	"OpMulB" : 14,
+	strMul:   (*Instruction).createMul,
+	strMulB:  (*Instruction).createMulB,
+	strMulC:  (*Instruction).createMulC,
+	strMulBC: (*Instruction).createMulBC,
 	// DIV
-	"OpDivC" : 15,
-	"OpDivBC" : 15,
-	"OpDiv" : 15,
-	"OpDivB" : 15,
+	strDiv:   (*Instruction).createDiv,
+	strDivB:  (*Instruction).createDivB,
+	strDivC:  (*Instruction).createDivC,
+	strDivBC: (*Instruction).createDivBC,
 	// MOD
-	"OpModB" : 16,
-	"OpModC" : 16,
-	"OpModBC" : 16,
-	"OpMod" : 16,
+	strMod:   (*Instruction).createMod,
+	strModB:  (*Instruction).createModB,
+	strModC:  (*Instruction).createModC,
+	strModBC: (*Instruction).createModBC,
 	// POW
-	"OpPow" : 17,
-	"OpPowB" : 17,
-	"OpPowC" : 17,
-	"OpPowBC" : 17,
+	strPow:   (*Instruction).createPow,
+	strPowB:  (*Instruction).createPowB,
+	strPowC:  (*Instruction).createPowC,
+	strPowBC: (*Instruction).createPowBC,
 	// UNM
-	"OpUnm" : 18,
+	strUnm: (*Instruction).createUnm,
 	// NOT
-	"OpNot" : 19,
+	strNot: (*Instruction).createNot,
 	// LEN
-	"OpLen" : 20,
+	strLen: (*Instruction).createLen,
 	// CONCAT
-	"OpConcat" : 21,
+	strConcat: (*Instruction).createConcat,
 	// JMP
-	"OpJmp" : 22,
+	strJmp: (*Instruction).createJmp,
 	// EQ
-	"OpEqB" : 23,
-	"OpEqC" : 23,
-	"OpEqBC" : 23,
-	"OpEq" : 23,
+	strEq:   (*Instruction).createEq,
+	strEqB:  (*Instruction).createEqB,
+	strEqC:  (*Instruction).createEqC,
+	strEqBC: (*Instruction).createEqBC,
 	// LT
-	"OpLt" : 24,
-	"OpLtB" : 24,
-	"OpLtC" : 24,
-	"OpLtBC" : 24,
-
-	"OpGe" : 24,
-	"OpGeB" : 24,
-	"OpGeC" : 24,
-	"OpGeBC" : 24,
+	strLt:   (*Instruction).createLt,
+	strLtB:  (*Instruction).createLtB,
+	strLtC:  (*Instruction).createLtC,
+	strLtBC: (*Instruction).createLtBC,
 	// LE
-	"OpLe" : 25,
-	"OpLeB" : 25,
-	"OpLeC" : 25,
-	"OpLeBC" : 25,
+	strLe:   (*Instruction).createLe,
+	strLeB:  (*Instruction).createLeB,
+	strLeC:  (*Instruction).createLeC,
+	strLeBC: (*Instruction).createLeBC,
 	// TEST
-	"OpTest" : 26,
-	"OpTestC" : 26,
+	strTest:  (*Instruction).createTest,
+	strTestC: (*Instruction).createTestC,
 	// TESTSET
-	"OpTestSet" : 27,
-	"OpTestSetC" : 27,
-	// CALL
-	"OpCallC1B2" : 28,
-	"OpCallB1C2" : 28,
-	"OpCallC0" : 28,
-	"OpCallC0B2" : 28,
-	"OpCallB1C0" : 28,
-	"OpCallB0" : 28,
-	"OpCallB0C0" : 28,
-	"OpCallB1" : 28,
-	"OpCallC1" : 28,
-	"OpCallB1C1" : 28,
-	"OpCallC2" : 28,
-	"OpCallC2B2" : 28,
-	"OpCallB0C2" : 28,
-	"OpCall" : 28,
-	"OpCallB2" : 28,
-	"OpCallB0C1" : 28,
+	strTestSet:  (*Instruction).createTestSet,
+	strTestSetC: (*Instruction).createTestSetC,
+	// Call
+	strCall:     (*Instruction).createCall,
+	strCallB2:   (*Instruction).createCallB2,
+	strCallB0:   (*Instruction).createCallB0,
+	strCallB1:   (*Instruction).createCallB1,
+	strCallC0:   (*Instruction).createCallC0,
+	strCallC0B2: (*Instruction).createCallC0B2,
+	strCallC1:   (*Instruction).createCallC1,
+	strCallC1B2: (*Instruction).createCallC1B2,
+	strCallB0C0: (*Instruction).createCallB0C0,
+	strCallB0C1: (*Instruction).createCallB0C1,
+	strCallB1C0: (*Instruction).createCallB1C0,
+	strCallB1C1: (*Instruction).createCallB1C1,
+	strCallC2:   (*Instruction).createCallC2,
+	strCallC2B2: (*Instruction).createCallC2B2,
+	strCallB0C2: (*Instruction).createCallB0C2,
+	strCallB1C2: (*Instruction).createCallB1C2,
 	// TAILCALL
-	"OpTailCall" : 29,
-	"OpTailCallB0" : 29,
-	"OpTailCallB1" : 29,
+	strTailCall:   (*Instruction).createTailCall,
+	strTailCallB0: (*Instruction).createTailCallB0,
+	strTailCallB1: (*Instruction).createTailCallB1,
 	// RETURN
-	"OpReturnB1" : 30,
-	"OpReturn" : 30,
-	"OpReturnB2" : 30,
-	"OpReturnB3" : 30,
-	"OpReturnB0" : 30,
+	strReturn:   (*Instruction).createReturn,
+	strReturnB0: (*Instruction).createReturnB0,
+	strReturnB1: (*Instruction).createReturnB1,
+	strReturnB2: (*Instruction).createReturnB2,
+	strReturnB3: (*Instruction).createReturnB3,
 	// FORLOOP
-	"OpForLoop" : 31,
+	strForLoop: (*Instruction).createForLoop,
 	// FORPREP
-	"OpForPrep" : 32,
+	strForPrep: (*Instruction).createForPrep,
 	// TFORLOOP
-	"OpTForLoop" : 33,
+	strTForLoop: (*Instruction).createTForLoop,
 	// SETLIST
-	"OpSetList" : 34,
-	"OpSetListB0" : 34,
-	"OpSetListC0" : 34,
+	strSetList:   (*Instruction).createSetList,
+	strSetListB0: (*Instruction).createSetListB0,
+	strSetListC0: (*Instruction).createSetListC0,
 	// CLOSE
-	"OpClose" : 35,
+	strClose: (*Instruction).createClose,
 	// CLOSURE
-	"OpClosure" : 36,
-	"OpClosureNU" : 36,
+	strClosure:   (*Instruction).createClosure,
+	strClosureNU: (*Instruction).createClosureNU,
 	// VARARG
-	"OpVarArg" : 37,
-	"OpVarArgB0" : 37,
-}
-
-// VOpToOp turns ib2 vopcode string to lua opcode integer
-func VOpToOp(vop string) int {
-	return voptoop[vop]
+	strVarArg:   (*Instruction).createVarArg,
+	strVarArgB0: (*Instruction).createVarArgB0,
 }

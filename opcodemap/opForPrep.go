@@ -1,7 +1,7 @@
 package opcodemap
 
-var opForPrep = map[string]string{
-	`local A = Inst[OP_A];
+const strForPrep = `
+	local A = Inst[OP_A];
 	local Index = Stk[A]
 	local Step = Stk[A + 2];
 	if (Step > 0) then 
@@ -14,5 +14,10 @@ var opForPrep = map[string]string{
 		InstrPoint = Inst[OP_B];
 	else
 		Stk[A+3] = Index;
-	end` : "OpForPrep",
+	end
+`
+
+func (instruction *Instruction) createForPrep() uint32 {
+	instruction.B = instruction.B - instruction.PC - 2
+	return instruction.createABC(opFORPREP)
 }

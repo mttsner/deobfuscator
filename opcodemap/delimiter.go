@@ -1,6 +1,3 @@
 package opcodemap
 
-var delimiter = map[string]string{
-	"InstrPoint = InstrPoint + 1;" : "Delimiter",
-	"Inst = Instr[InstrPoint];" : "Delimiter2",
-}
+const delimiter = "InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];"

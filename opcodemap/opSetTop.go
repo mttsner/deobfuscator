@@ -1,5 +1,7 @@
 package opcodemap
 
-var opSetTop = map[string]string{
-	"Top=Inst[OP_A];" : "OpSetTop",
+const strSetTop = "Top=Inst[OP_A];"
+
+func (instruction *Instruction) createSetTop() uint32 {
+	panic("Custom ib2 opcode! opSetTop.go")
 }

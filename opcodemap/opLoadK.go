@@ -1,5 +1,8 @@
 package opcodemap
 
-var opLoadK = map[string]string{
-	"Stk[Inst[OP_A]] = Inst[OP_B];" : "OpLoadK",
+const strLoadK = "Stk[Inst[OP_A]] = Inst[OP_B];"
+
+func (instruction *Instruction) createLoadK() uint32 {
+	instruction.B--
+	return instruction.createABx(opLOADK)
 }

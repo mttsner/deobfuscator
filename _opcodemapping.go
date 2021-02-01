@@ -349,6 +349,7 @@ func (data *mapData) solveIf(chunk []ast.Stmt) {
 
 // GenerateHashmap allows you to generate the hashmap once and then reuse it.
 func GenerateHashmap() map[string]string {
+	
 	data := &mapData{
 		UseNumbers:  true,
 		Stack:       "Stk",

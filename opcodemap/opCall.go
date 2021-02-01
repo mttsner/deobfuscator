@@ -1,95 +1,168 @@
 package opcodemap
 
-var opCall = map[string]string{
-	`local A = Inst[OP_A]
+const (
+	strCall = `local A = Inst[OP_A]
 	local Results = { Stk[A](Unpack(Stk, A + 1, Inst[OP_B])) };
 	local Edx = 0;
 	for Idx = A, Inst[OP_C] do 
 		Edx = Edx + 1;
 		Stk[Idx] = Results[Edx];
-	end`: "OpCall",
+	end`
 
-	`local A = Inst[OP_A]
+	strCallB2 = `local A = Inst[OP_A]
 	local Results = { Stk[A](Stk[A + 1]) };
 	local Edx = 0;
 	for Idx = A, Inst[OP_C] do 
 		Edx = Edx + 1;
 		Stk[Idx] = Results[Edx];
-	end` : "OpCallB2",
+	end`
 
-	`local A = Inst[OP_A]
+	strCallB0 = `local A = Inst[OP_A]
 	local Results = { Stk[A](Unpack(Stk, A + 1, Top)) };
 	local Edx = 0;
 	for Idx = A, Inst[OP_C] do 
 		Edx = Edx + 1;
 		Stk[Idx] = Results[Edx];
-	end` : "OpCallB0",
+	end`
 
-	`local A = Inst[OP_A]
+	strCallB1 = `local A = Inst[OP_A]
 	local Results = { Stk[A]() };
 	local Limit = Inst[OP_C];
 	local Edx = 0;
 	for Idx = A, Limit do 
 		Edx = Edx + 1;
 		Stk[Idx] = Results[Edx];
-	end` : "OpCallB1",
+	end`
 
-	`local A = Inst[OP_A]
+	strCallC0 = `local A = Inst[OP_A]
 	local Results, Limit = _R(Stk[A](Unpack(Stk, A + 1, Inst[OP_B])))
 	Top = Limit + A - 1
 	local Edx = 0;
 	for Idx = A, Top do 
 		Edx = Edx + 1;
 		Stk[Idx] = Results[Edx];
-	end` : "OpCallC0",
+	end`
 
-	`local A = Inst[OP_A]
+	strCallC0B2 = `local A = Inst[OP_A]
 	local Results, Limit = _R(Stk[A](Stk[A + 1]))
 	Top = Limit + A - 1
 	local Edx = 0;
 	for Idx = A, Top do 
 		Edx = Edx + 1;
 		Stk[Idx] = Results[Edx];
-	end;` : "OpCallC0B2",
+	end;`
 
-	`local A = Inst[OP_A]
-	Stk[A](Unpack(Stk, A + 1, Inst[OP_B]))` : "OpCallC1",
+	strCallC1 = `local A = Inst[OP_A]
+	Stk[A](Unpack(Stk, A + 1, Inst[OP_B]))`
 
-	`local A = Inst[OP_A]
-	Stk[A](Stk[A + 1])` : "OpCallC1B2",
+	strCallC1B2 = `local A = Inst[OP_A]
+	Stk[A](Stk[A + 1])`
 
-	`local A = Inst[OP_A]
+	strCallB0C0 = `local A = Inst[OP_A]
 	local Results, Limit = _R(Stk[A](Unpack(Stk, A + 1, Top)))
 	Top = Limit + A - 1
 	local Edx = 0;
 	for Idx = A, Top do 
 		Edx = Edx + 1;
 		Stk[Idx] = Results[Edx];
-	end;` : "OpCallB0C0",
+	end;`
 
-	`local A = Inst[OP_A]
-	Stk[A](Unpack(Stk, A + 1, Top))` : "OpCallB0C1",
+	strCallB0C1 = `local A = Inst[OP_A]
+	Stk[A](Unpack(Stk, A + 1, Top))`
 
-	`local A = Inst[OP_A]
+	strCallB1C0 = `local A = Inst[OP_A]
 	local Results, Limit = _R(Stk[A]())
 	Top = Limit + A - 1
 	local Edx = 0;
 	for Idx = A, Top do 
 		Edx = Edx + 1;
 		Stk[Idx] = Results[Edx];
-	end;` : "OpCallB1C0",
+	end;`
 
-	`Stk[Inst[OP_A]]();` : "OpCallB1C1",
+	strCallB1C1 = "Stk[Inst[OP_A]]();"
 
-	`local A = Inst[OP_A]
-	Stk[A] = Stk[A](Unpack(Stk, A + 1, Inst[OP_B])) ` : "OpCallC2",
+	strCallC2 = `local A = Inst[OP_A]
+	Stk[A] = Stk[A](Unpack(Stk, A + 1, Inst[OP_B]))`
 
-	`local A = Inst[OP_A]
-	Stk[A] = Stk[A](Stk[A + 1]) ` : "OpCallC2B2",
+	strCallC2B2 = `local A = Inst[OP_A]
+	Stk[A] = Stk[A](Stk[A + 1]) `
 
-	`local A = Inst[OP_A]
-	Stk[A] = Stk[A](Unpack(Stk, A + 1, Top))` : "OpCallB0C2",
-	
-	`local A = Inst[OP_A]
-	Stk[A] = Stk[A]()` : "OpCallB1C2",
+	strCallB0C2 = `local A = Inst[OP_A]
+	Stk[A] = Stk[A](Unpack(Stk, A + 1, Top))`
+
+	strCallB1C2 = `local A = Inst[OP_A]
+	Stk[A] = Stk[A]()`
+)
+
+func (instruction *Instruction) createCall() uint32 {
+	instruction.B = instruction.B - instruction.A + 1
+	instruction.C = instruction.C - instruction.A + 2
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB2() uint32 {
+	instruction.C = instruction.C - instruction.A + 2
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB0() uint32 {
+	instruction.C = instruction.C - instruction.A + 2
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB1() uint32 {
+	instruction.C = instruction.C - instruction.A + 2
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallC0() uint32 {
+	instruction.B = instruction.B - instruction.A + 1
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallC0B2() uint32 {
+	instruction.B = instruction.B - instruction.A + 1
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallC1() uint32 {
+	instruction.B = instruction.B - instruction.A + 1
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallC1B2() uint32 {
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB0C0() uint32 {
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB0C1() uint32 {
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB1C0() uint32 {
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB1C1() uint32 {
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallC2() uint32 {
+	instruction.B = instruction.B - instruction.A + 2
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallC2B2() uint32 {
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB0C2() uint32 {
+	return instruction.createABC(opCALL)
+}
+
+func (instruction *Instruction) createCallB1C2() uint32 {
+	return instruction.createABC(opCALL)
 }

@@ -184,50 +184,37 @@ func (data *vmdata) deserialize(Opcodemap map[int][]string) *lua.FunctionProto {
 				if gBit(descriptor,0,0) == 0 {
 					Type := gBit(descriptor,1,2)
 					//mask := gBit(descriptor,3,5)
-					o := data.gBits16()
-					op := Opcodemap[o][0]
+					op := Opcodemap[data.gBits16()]
 
-					if op == "SuperOperator" && !isSuperOp {
-						isSuperOp = true
-						currentSuperOp = o
-					}
-
-					if isSuperOp {
-						op = Opcodemap[currentSuperOp][superop]
-						if superop == len(Opcodemap[currentSuperOp]) {
-							superop = 0
-							currentSuperOp = 0
-							isSuperOp = false
-						}
-						superop++
-					}
-				
-					a := data.gBits16()
-					var b int
-					var c int
+					var a, b, c int
 
 					switch Type {
 					case 0: //ABC
+						a = data.gBits16()
 						b = data.gBits16()
 						c = data.gBits16()
-						addOp(op, a, b, c, function, opCreateABC, &PC)
+						//addOp(op, a, b, c, function, opCreateABC, &PC)
 					case 1: // ABx
+						a = data.gBits16()
 						b = data.gBits32()
 						
-						if op == "OpClosureNU" {upvalarray = append(upvalarray, 0)}
+						//if op == "OpClosureNU" {upvalarray = append(upvalarray, 0)}
 						
-						addOp(op, a, b, c, function, opCreateABx, &PC)
+						//addOp(op, a, b, c, function, opCreateABx, &PC)
 					case 2: // AsBx
+						a = data.gBits16()
 						b = data.gBits32() - 65536
-						addOp(op, a, b, c, function, opCreateASbx, &PC)
+						//addOp(op, a, b, c, function, opCreateASbx, &PC)
 					case 3: // AsBxC
+						a = data.gBits16()
 						b = data.gBits32() - 65536
 						c = data.gBits16()
 						
-						if op == "OpClosure" {upvalarray = append(upvalarray, c)}
+						//if op == "OpClosure" {upvalarray = append(upvalarray, c)}
 
-						addOp(op, a, b, c, function, opCreateABx, &PC)
+						//addOp(op, a, b, c, function, opCreateABx, &PC)
 					}
+					function = append(function, op.Create(a, b, c, PC))
 					PC++
 				}
 

@@ -6,21 +6,19 @@ import (
 
 
 func getBit(str string, pos *int) int64 {
-
 	len,_ := strconv.ParseInt(str[*pos:*pos+1], 36, 64)
 	val,_ := strconv.ParseInt(str[*pos+1:*pos+int(len)+1], 36, 64)
 	*pos += int(len) + 1
 	return val
 } 
 
-func Decompress(compressed string) []byte {
+func decompress(compressed string) []byte {
 	pos := 0
 	var code int64 = 256
 	dictionary := make(map[int64][]int64)
-
 	currChar := []int64{getBit(compressed, &pos)}
-    	result := currChar
-    	for pos < len(compressed) {
+    result := currChar
+    for pos < len(compressed) {
 		var word []int64
 		element := getBit(compressed, &pos)
 

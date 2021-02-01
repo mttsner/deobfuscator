@@ -1,5 +1,7 @@
 package opcodemap
 
-var opUnm = map[string]string{
-	"Stk[Inst[OP_A]]=-Stk[Inst[OP_B]];" : "OpUnm",
+const strUnm = "Stk[Inst[OP_A]]=-Stk[Inst[OP_B]];"
+
+func (instruction *Instruction) createUnm() uint32 {
+	return instruction.createABC(opUNM)
 }

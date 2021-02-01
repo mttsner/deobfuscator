@@ -1,5 +1,7 @@
 package opcodemap
 
-var opSetFEnv = map[string]string{
-	"Env = Stk[Inst[OP_A]]" : "OpSetFEnv",
+const strSetFEnv = "Env = Stk[Inst[OP_A]]"
+
+func (instruction *Instruction) createSetFEnv() uint32 {
+	panic("OpSetFEnv is not implemented")
 }

@@ -1,5 +1,7 @@
 package opcodemap
 
-var opGetUpval = map[string]string{
-	"Stk[Inst[OP_A]]=Upvalues[Inst[OP_B]];" : "OpGetUpval",
+const strGetUpval = "Stk[Inst[OP_A]]=Upvalues[Inst[OP_B]];"
+
+func (instruction *Instruction) createGetUpval() uint32 {
+	return instruction.createABC(opGETUPVAL)
 }
