@@ -1,4 +1,4 @@
-image: gitpod/workspace-full
+image: golang:1.16-alpine
 
 tasks:
   - init: go get && go build ./... && go test ./...
