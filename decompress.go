@@ -4,7 +4,6 @@ import (
 	"strconv"
 )
 
-
 func getBit(str string, pos *int) int64 {
 	len,_ := strconv.ParseInt(str[*pos:*pos+1], 36, 64)
 	val,_ := strconv.ParseInt(str[*pos+1:*pos+int(len)+1], 36, 64)

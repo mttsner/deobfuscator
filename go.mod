@@ -1,8 +1,6 @@
 module github.com/notnoobmaster/deobfuscator
 
-go 1.15
-
-replace github.com/notnoobmaster/beautifier => ../beautifier
+go 1.16
 
 require github.com/notnoobmaster/beautifier v1.0.0
 
