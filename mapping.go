@@ -2,8 +2,8 @@ package deobfuscator
 
 import (
 	"strings"
-	"../beautifier"
-	"./opcodemap"
+	"github.com/notnoobmaster/beautifier"
+	"github.com/notnoobmaster/deobfuscator/opcodemap"
 	"github.com/yuin/gopher-lua/parse"
 	//"github.com/yuin/gopher-lua/ast"
 )
@@ -84,7 +84,7 @@ func generateOpcodemap(vm *vmdata, hashmap map[string]opcodemap.CreateSig) map[i
 }
 */
 // GenerateHashmap generates the lookup table for opcode functions.
-func GenerateHashmap() map[string]opcodemap.CreateSig {
+func GenerateHashmap() map[string]func(*opcodemap.Instruction) {
 	// We need to detect some variable names or else some opcodes have the same hash.
 	variables := map[string]byte{
 		"Stk":        beautifier.Stack,

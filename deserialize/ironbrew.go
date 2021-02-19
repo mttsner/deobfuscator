@@ -54,9 +54,14 @@ func (data *vmdata) Ironbrew(Opcodemap map[int][]string) *lua.FunctionProto {
 						instruction.B = data.gBits32() - 65536
 						instruction.C = data.gBits16()
 					}
-					function = append(function, instruction.createOpcode())
-					PC++ // Maybe it needs to be outside the if statement
+					function = append(function, createOpcode(instruction))
+					pc++ // Maybe it needs to be outside the if statement
 				}
+			}
+		case 4:
+			lineCount := data.gBits32()
+			for i := 0; i < lineCount; i++ {
+				function.DbgSourcePositions = append(function.DbgSourcePositions, data.gBits32())
 			}
 		}
 	}

@@ -1,5 +1,9 @@
 package deserialize
 
+import (
+	"github.com/yuin/gopher-lua"
+)
+
 func newFunctionProto() *lua.FunctionProto {
 	return &lua.FunctionProto{
 		SourceName:         "noobmaster(254658795878219778)",
@@ -18,4 +22,9 @@ func newFunctionProto() *lua.FunctionProto {
 		DbgCalls:           make([]lua.DbgCall, 0, 128),
 		DbgUpvalues:        make([]string, 0, 16),
 	}
+}
+
+func gBit(num, start, end int) int {
+	mask := ((1<<(end-start+1))-1) << start
+	return (num & mask) >> start
 }
