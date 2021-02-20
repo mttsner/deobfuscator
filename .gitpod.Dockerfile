@@ -1,12 +1,11 @@
 FROM golang:1.16-alpine
 
-RUN apt update \
-    && apt -y install --no-install-recommends apt-utils 2>&1
+RUN apk update
 
-RUN apt -y install git
+RUN apk -y install git
 
 # Install Go tools.
-RUN apt update \
+RUN apk update \
     # Install other tools.
     && go get -u -v \
         github.com/mdempsky/gocode \
