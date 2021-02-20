@@ -6,7 +6,7 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-func (data *vmdata) deserialize(Opcodemap map[int][]string) *lua.FunctionProto {
+func (data *vmdata) deserialize(Opcodemap map[int]func(*opcodemap.Instruction)uint32) *lua.FunctionProto {
 	function := helper.NewFunctionProto()
 	for _, v := range data.Order {
 		switch v {
@@ -56,7 +56,7 @@ func (data *vmdata) deserialize(Opcodemap map[int][]string) *lua.FunctionProto {
 						instruction.B = data.gBits32() - 65536
 						instruction.C = data.gBits16()
 					}
-					function = append(function, createOpcode(instruction))
+					function.Code = append(function.Code, createOpcode(instruction))
 					pc++
 				}
 			}

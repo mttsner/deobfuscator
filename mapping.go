@@ -1,11 +1,14 @@
 package deobfuscator
 
 import (
+	"errors"
 	"strings"
+	"strconv"
+
 	"github.com/notnoobmaster/beautifier"
 	"github.com/notnoobmaster/deobfuscator/opcodemap"
+	"github.com/yuin/gopher-lua/ast"
 	"github.com/yuin/gopher-lua/parse"
-	//"github.com/yuin/gopher-lua/ast"
 )
 
 type mapData struct {
@@ -13,7 +16,7 @@ type mapData struct {
 	Opcodemap   map[int][]string
 	Hashmap     map[string]opcodemap.CreateSig
 }
-/*
+
 func (data *mapData) solveSuperOp(chunk []ast.Stmt) []string {
 	localassing := identExpr+"="
 	hash := ""
@@ -37,39 +40,36 @@ func (data *mapData) chunkToOp(chunk []ast.Stmt) opcodemap.CreateSig {
 	return data.Hashmap[hash]
 }
 
-func solveIf(chunk []ast.Stmt) {
-	for _, stmt := range chunk {
-		switch st := stmt.(type) {
-		case *ast.IfStmt:
-			ex := st.Condition.(*ast.RelationalOpExpr)
-			switch ex.Operator {
-			case "==":
-				op, _ := strconv.Atoi(ex.Rhs.(*ast.NumberExpr).Value)
-				data.Opcodemap[op] = data.chunkToOp(st.Then)
-				data.Opcodemap[op+1] = data.chunkToOp(st.Else)
-			case ">":
-				op, _ := strconv.Atoi(ex.Rhs.(*ast.NumberExpr).Value)
-				data.Opcodemap[op+1] = data.chunkToOp(st.Then)
-				data.Opcodemap[op] = data.chunkToOp(st.Else)
-			case "<=":
-				if inner, ok := st.Then[0].(*ast.IfStmt); ok {
-					if op, ok := inner.Condition.(*ast.RelationalOpExpr); ok {
-						if _, ok := op.Rhs.(*ast.NumberExpr); ok {
-							//op, _ := strconv.Atoi(rhs.Value)
-							data.solveIf(st.Then)
-							data.solveIf(st.Else)
-							return 
-						}
-					}
-				}
-				op, _ := strconv.Atoi(ex.Rhs.(*ast.NumberExpr).Value)
-				data.Opcodemap[op] = data.chunkToOp(st.Then)
-				data.solveIf(st.Else)
-			default:
-				data.solveIf(st.Then)
-			}
-		}
+func (s *state) solveIf(stmt *ast.IfStmt) error {
+	relational, ok := stmt.Condition.(*ast.RelationalOpExpr)
+	if !ok {
+		return errors.New("Malformed if statement, no relational operator")
 	}
+	number, ok := relational.Rhs.(*ast.NumberExpr)
+	if !ok {
+		return errors.New("Malformed if statement, right side is not a number")
+	}
+	op, err := strconv.Atoi(number.Value)
+	if err != nil {
+		return errors.New("Malformed if statement, string conversion failed")
+	}
+	switch relational.Operator {
+	case "==":
+		s.Opcodemap[op] = s.chunkToOp(stmt.Then)
+		s.Opcodemap[op+1] = s.chunkToOp(stmt.Else)
+	case ">":
+		s.Opcodemap[op+1] = s.chunkToOp(stmt.Then)
+		s.Oopcodemap[op] = s.chunkToOp(stmt.Else)
+	case "<=":
+		if inner, ok := stmt.Then[0].(*ast.IfStmt); ok && len(stmt.Then) == 1 {
+			s.solveIf(inner)
+		} else {
+			return errors.New("Malformed if statement, expected elseif")
+		}
+	default:
+		return errors.New("Malformed if statement, invalid relational operator")
+	}
+	return nil
 }
 
 func generateOpcodemap(vm *vmdata, hashmap map[string]opcodemap.CreateSig) map[int]opcodemap.CreateSig {
@@ -82,7 +82,7 @@ func generateOpcodemap(vm *vmdata, hashmap map[string]opcodemap.CreateSig) map[i
 	}
 	solveIf(vm.VMLoop.Stmts)
 }
-*/
+
 // GenerateHashmap generates the lookup table for opcode functions.
 func GenerateHashmap() map[string]func(*opcodemap.Instruction) {
 	// We need to detect some variable names or else some opcodes have the same hash.
