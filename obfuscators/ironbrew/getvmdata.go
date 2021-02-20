@@ -31,6 +31,7 @@ type vmdata struct {
 	Settings settings
 	Deserialize *ast.FunctionExpr
 	Order 	 []byte
+	Pos int
 	Key      byte
 	Bool     int
 	Float    int

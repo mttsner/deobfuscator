@@ -1,4 +1,4 @@
-package deobfuscator
+package ironbrew
 
 import (
 	"math"
@@ -8,9 +8,6 @@ import (
 func (data *vmdata) read(bs []byte) []byte {
 	for i, b := range bs {
 		bs[i] = b ^ data.Key
-		if data.Obfuscator.Name == "PSU" {
-			data.Key = byte(math.Mod(float64(bs[i]), 256))
-		} 
 	}
 	data.Pos += len(bs)
 	return bs
