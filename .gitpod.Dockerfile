@@ -28,6 +28,6 @@ ENV GOPATH=/workspace/go
 ENV GO111MODULE=on
 ENV GOPRIVATE=github.com/notnoobmaster
 
-RUN apk install git
+RUN apk add git
 
 RUN git config --global url."https://${username}:${personal_access_token}@github.com/notnoobmaster".insteadOf "https://github.com/notnoobmaster"
