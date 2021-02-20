@@ -9,8 +9,8 @@ import (
 
 	"github.com/notnoobmaster/beautifier"
 	//"github.com/notnoobmaster/deobfuscator"
-	"github.com/yuin/gopher-lua/parse"
 	"github.com/yuin/gopher-lua/ast"
+	"github.com/yuin/gopher-lua/parse"
 )
 
 type settings struct {
@@ -19,125 +19,121 @@ type settings struct {
 }
 
 type vmdata struct {
-	Key byte
-	Bool int 
-	Float int
-	String int
-	Env string
+	Loop     *ast.IfStmt
+	Settings settings
+	Deserialize *ast.FunctionExpr
+	Key      byte
+	Bool     int
+	Float    int
+	String   int
+	Env      string
 	Upvalues string
 	Bytecode []byte
-	Settings settings
-}
-
-//go:embed "patterns/gbits32.lua"
-var strBtis32 string
-var astBits32 []ast.Stmt
-
-func (data *vmdata) getBits32Data(chunk []ast.Stmt) bool {
-	success, exprs := beautifier.Match(chunk, astBits32)
-	if !success {
-		return false
-	}
-	key, _ := strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
-	data.Key = byte(key)
-	return true
 }
 
 //go:embed "patterns/constloop.lua"
 var strConstLoop string
 var astConstLoop []ast.Stmt
 
-func (data *vmdata) getConstLoopData(chunk []ast.Stmt) bool {
-	success, exprs := beautifier.Match(chunk, astConstLoop)
+func (data *vmdata) constants(chunk []ast.Stmt) bool {
+	success, exprs, _ := beautifier.Match(chunk, astConstLoop)
 	if !success {
 		return false
 	}
-	data.Bool,   _ = strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
-	data.Float,  _ = strconv.Atoi(exprs[1].(*ast.NumberExpr).Value)
+	data.Bool, _ = strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
+	data.Float, _ = strconv.Atoi(exprs[1].(*ast.NumberExpr).Value)
 	data.String, _ = strconv.Atoi(exprs[2].(*ast.NumberExpr).Value)
 	return true
 }
 
-//go:embed "patterns/wrap.lua"
-var strWrap string
-var astWrap []ast.Stmt
-
-//go:embed "patterns/wraplineinfo.lua"
-var strWrapLineInfo string
-var astWrapLineInfo []ast.Stmt
-
-func (data *vmdata) getWrapData(chunk []ast.Stmt) bool {
-	success, exprs := beautifier.Match(chunk, astWrap)
-	if success {
-		data.Upvalues = exprs[0].(*ast.IdentExpr).Value
-		data.Env      = exprs[1].(*ast.IdentExpr).Value
-		return true
-	}
-	success, exprs = beautifier.Match(chunk, astWrapLineInfo)
-	if success {
-		data.Upvalues = exprs[0].(*ast.IdentExpr).Value
-		data.Env      = exprs[1].(*ast.IdentExpr).Value
-		data.Settings.PreserveLineInfo = true
-		return true
-	}
-	return false
-}
-
-//go:embed "patterns/compressed.lua"
+//go:embed patterns/compressed.lua
 var strCompressed string
 var astCompressed []ast.Stmt
 
-//go:embed "patterns/bytestring.lua"
-var strNormal string
-var astNormal []ast.Stmt
-
-func (data *vmdata) getBytecode(chunk []ast.Stmt) bool {
-	success, exprs := beautifier.Match(chunk, astNormal)
-	if success {
-		data.Bytecode = []byte(exprs[0].(*ast.StringExpr).Value)
-		return true
+func (data *vmdata) compressed(chunk []ast.Stmt) bool {
+	success, exprs, _ := beautifier.Match(chunk, astCompressed)
+	if !success {
+		return success
 	}
-	success, exprs = beautifier.Match(chunk, astCompressed)
-	if success {
-		byteString := exprs[0].(*ast.StringExpr).Value
-		if bytecode, err := decompress(byteString); err == nil {
-			data.Settings.BytecodeCompress = true
-			data.Bytecode = bytecode
-			return true
-		}
+	byteString := exprs[0].(*ast.StringExpr).Value
+	if bytecode, err := decompress(byteString); err == nil {
+		data.Settings.BytecodeCompress = true
+		data.Bytecode = bytecode
+		return success
 	}
 	return false
 }
 
-func (data *vmdata) GetVmdata(chunk []ast.Stmt) (err error){
-	if !data.getBits32Data(chunk) {
-		return errors.New("Couldn't get the decryption key")
+//go:embed patterns/uncompressed.lua
+var strUncompressed string
+var astUncompressed []ast.Stmt
+
+func (data *vmdata) uncompressed(chunk []ast.Stmt) bool {
+	success, exprs, _ := beautifier.Match(chunk, astUncompressed)
+	if !success {
+		return success
 	}
-	if !data.getConstLoopData(chunk) {
+	data.Bytecode = []byte(exprs[0].(*ast.StringExpr).Value)
+	return success
+}
+
+//go:embed patterns/normal.lua
+var strNormal string
+var astNormal []ast.Stmt
+
+func (data *vmdata) normal(chunk []ast.Stmt) bool {
+	success, exprs, stmts := beautifier.Match(chunk, astNormal)
+	if !success {
+		return success
+	}
+	key, _ := strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
+	data.Key = byte(key)
+	data.Deserialize = exprs[1].(*ast.FunctionExpr)
+	data.Upvalues = exprs[2].(*ast.IdentExpr).Value
+	data.Env = exprs[3].(*ast.IdentExpr).Value
+	data.Loop = stmts[0].(*ast.IfStmt)
+	return success
+}
+
+//go:embed patterns/lineinfo.lua
+var strLineinfo string
+var astLineinfo []ast.Stmt
+
+func (data *vmdata) lineinfo(chunk []ast.Stmt) bool {
+
+	return true
+}
+
+func (data *vmdata) GetVmdata(chunk []ast.Stmt) (err error) {
+	if !(data.compressed(chunk) || data.uncompressed(chunk)) {
+		return errors.New("Couldn't get VM bytecode")
+	}
+
+	if !(data.normal(chunk) || data.lineinfo(chunk)) {
+		return errors.New("Couldn't get VM data")
+	}
+
+	if !data.constants(data.Deserialize.Stmts) {
 		return errors.New("Couldn't get constant keys")
 	}
-	if !data.getWrapData(chunk) {
-		return errors.New("Couldn't get wrap function variables")
-	}
-	if !data.getBytecode(chunk) {
-		return errors.New("Couldn't get the bytecode")
-	}
-	return
+
+	return nil
 }
 
 func compile(str string) []ast.Stmt {
 	chunk, err := parse.Parse(strings.NewReader(str), "")
 	if err != nil {
-		panic(err)//panic("Ironbrew: pattern parsing failed")
+		panic(err) //panic("Ironbrew: pattern parsing failed")
 	}
 	return chunk
 }
 
 func initVmdata() {
-	astBits32 = compile(strBtis32)
 	astConstLoop = compile(strConstLoop)
-	astWrap = compile(strWrap)
-	astWrapLineInfo = compile(strWrapLineInfo)
+
 	astCompressed = compile(strCompressed)
+	astUncompressed = compile(strUncompressed)
+
 	astNormal = compile(strNormal)
+	astLineinfo = compile(strLineinfo)
 }

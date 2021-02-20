@@ -168,39 +168,46 @@ local function Deserialize()
 		
 		Consts[Idx] = Cons;
 	end;
-Chunk[3] = gBits8();for Idx=1,gBits32() do 
-									local Descriptor = gBits8();
-									if (gBit(Descriptor, 1, 1) == 0) then
-										local Type = gBit(Descriptor, 2, 3);
-										local Mask = gBit(Descriptor, 4, 6);
-										
-										local Inst=
-										{
-											gBits16(),
-											gBits16(),
-											nil,
-											nil
-										};
+    Chunk[3] = gBits8();
+    for Idx=1,gBits32() do 
+		local Descriptor = gBits8();
+		if (gBit(Descriptor, 1, 1) == 0) then
+			local Type = gBit(Descriptor, 2, 3);
+			local Mask = gBit(Descriptor, 4, 6);
+			
+			local Inst=
+			{
+				gBits16(),
+				gBits16(),
+				nil,
+				nil
+			};
+                                    
+			if (Type == 0) then 
+				Inst[3] = gBits16(); 
+				Inst[4] = gBits16();
+			elseif(Type==1) then 
+					Inst[3] = gBits32();
+			elseif(Type==2) then 
+				Inst[3] = gBits32() - (2 ^ 16)
+			elseif(Type==3) then 
+				Inst[3] = gBits32() - (2 ^ 16)
+				Inst[4] = gBits16();
+			end;
 	
-										if (Type == 0) then 
-											Inst[3] = gBits16(); 
-											Inst[4] = gBits16();
-										elseif(Type==1) then 
-											Inst[3] = gBits32();
-										elseif(Type==2) then 
-											Inst[3] = gBits32() - (2 ^ 16)
-										elseif(Type==3) then 
-											Inst[3] = gBits32() - (2 ^ 16)
-											Inst[4] = gBits16();
-										end;
-	
-										if (gBit(Mask, 1, 1) == 1) then Inst[2] = Consts[Inst[2]] end
-										if (gBit(Mask, 2, 2) == 1) then Inst[3] = Consts[Inst[3]] end
-										if (gBit(Mask, 3, 3) == 1) then Inst[4] = Consts[Inst[4]] end
+			if (gBit(Mask, 1, 1) == 1) then Inst[2] = Consts[Inst[2]] end
+			if (gBit(Mask, 2, 2) == 1) then Inst[3] = Consts[Inst[3]] end
+			if (gBit(Mask, 3, 3) == 1) then Inst[4] = Consts[Inst[4]] end
 										
-										Instrs[Idx] = Inst;
-									end
-								end;for Idx=1,gBits32() do Functions[Idx-1]=Deserialize();end;return Chunk;end;
+			Instrs[Idx] = Inst;
+		end
+    end;
+    for Idx=1,gBits32() do 
+        Functions[Idx-1]=Deserialize();
+    end;
+    return Chunk;
+end;
+
 local function Wrap(Chunk, Upvalues, Env)
 	local Instr  = Chunk[1];
 	local Proto  = Chunk[2];
@@ -238,13 +245,61 @@ local function Wrap(Chunk, Upvalues, Env)
 
 		while true do
 			Inst		= Instr[InstrPoint];
-			Enum		= Inst[1];if Enum <= 3 then if Enum <= 1 then if Enum == 0 then 
-local A = Inst[2]
-Stk[A](Unpack(Stk, A + 1, Inst[3]))
-else local A;Stk[Inst[2]] = Inst[3];InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];Stk[Inst[2]]=Env[Inst[3]];InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];Stk[Inst[2]] = Inst[3];InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];Stk[Inst[2]]=Stk[Inst[3]]+Stk[Inst[4]];InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];Stk[Inst[2]]=Stk[Inst[3]]*Stk[Inst[4]];InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];Stk[Inst[2]]=Stk[Inst[3]] / Stk[Inst[4]];InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];Stk[Inst[2]]=Stk[Inst[3]]-Stk[Inst[4]];InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];
-A= Inst[2]
-Stk[A](Unpack(Stk, A + 1, Inst[3]))
-InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];do return end;end; elseif Enum == 2 then Stk[Inst[2]]=Stk[Inst[3]]+Stk[Inst[4]];else Stk[Inst[2]] = Inst[3];end; elseif Enum <= 5 then if Enum > 4 then Stk[Inst[2]]=Stk[Inst[3]] / Stk[Inst[4]];else do return end;end; elseif Enum <= 6 then Stk[Inst[2]]=Stk[Inst[3]]-Stk[Inst[4]]; elseif Enum == 7 then Stk[Inst[2]]=Env[Inst[3]];else Stk[Inst[2]]=Stk[Inst[3]]*Stk[Inst[4]];end;
+            Enum		= Inst[1];
+            if Enum <= 3 then 
+                if Enum <= 1 then 
+                    if Enum == 0 then 
+                        local A = Inst[2]
+                        Stk[A](Unpack(Stk, A + 1, Inst[3]))
+                    else 
+                        local A;
+                        Stk[Inst[2]] = Inst[3];
+                        InstrPoint = InstrPoint + 1;
+                        Inst = Instr[InstrPoint];
+                        Stk[Inst[2]]=Env[Inst[3]];
+                        InstrPoint = InstrPoint + 1;
+                        Inst = Instr[InstrPoint];
+                        Stk[Inst[2]] = Inst[3];
+                        InstrPoint = InstrPoint + 1;
+                        Inst = Instr[InstrPoint];
+                        Stk[Inst[2]]=Stk[Inst[3]]+Stk[Inst[4]];
+                        InstrPoint = InstrPoint + 1;
+                        Inst = Instr[InstrPoint];
+                        Stk[Inst[2]]=Stk[Inst[3]]*Stk[Inst[4]];
+                        InstrPoint = InstrPoint + 1;
+                        Inst = Instr[InstrPoint];
+                        Stk[Inst[2]]=Stk[Inst[3]] / Stk[Inst[4]];
+                        InstrPoint = InstrPoint + 1;
+                        Inst = Instr[InstrPoint];
+                        Stk[Inst[2]]=Stk[Inst[3]]-Stk[Inst[4]];
+                        InstrPoint = InstrPoint + 1;
+                        Inst = Instr[InstrPoint];
+                        A= Inst[2]
+                        Stk[A](Unpack(Stk, A + 1, Inst[3]))
+                        InstrPoint = InstrPoint + 1;
+                        Inst = Instr[InstrPoint];
+                        do return end;
+                    end; 
+                elseif Enum == 2 then 
+                    Stk[Inst[2]]=Stk[Inst[3]]+Stk[Inst[4]];
+                else 
+                    Stk[Inst[2]] = Inst[3];
+                end; 
+            elseif Enum <= 5 then 
+                if Enum > 4 then 
+                    Stk[Inst[2]]=Stk[Inst[3]] / Stk[Inst[4]];
+                else 
+                    do 
+                        return 
+                    end;
+                end; 
+            elseif Enum <= 6 then 
+                Stk[Inst[2]]=Stk[Inst[3]]-Stk[Inst[4]]; 
+            elseif Enum == 7 then 
+                Stk[Inst[2]]=Env[Inst[3]];
+            else 
+                Stk[Inst[2]]=Stk[Inst[3]]*Stk[Inst[4]];
+            end;
 			InstrPoint	= InstrPoint + 1;
 		end;
     end;

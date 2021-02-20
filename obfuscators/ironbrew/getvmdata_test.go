@@ -12,7 +12,6 @@ import (
 var test string
 
 func TestGetVmdata(t *testing.T) {
-	
 	chunk, err := parse.Parse(strings.NewReader(test), "")
 	if err != nil {
 		t.Fatal(err)
@@ -21,7 +20,7 @@ func TestGetVmdata(t *testing.T) {
 	data := vmdata{}
 	err = data.GetVmdata(chunk)
 	t.Logf("%#v", data)
-	if err != nil {
+	if err == nil {
 		t.Error(err)
 	}
 }
