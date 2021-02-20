@@ -23,3 +23,5 @@ RUN apk update \
         golang.org/x/lint/golint && \
     GO111MODULE=on go get -u -v \
         golang.org/x/tools/gopls@v0.6.5
+
+ENV GOPATH=/workspace/go
