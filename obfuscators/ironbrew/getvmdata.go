@@ -13,6 +13,15 @@ import (
 	"github.com/yuin/gopher-lua/parse"
 )
 
+// 1: Arg 2: Protos 3: Instructions
+const (
+	parameters byte = iota
+	constants
+	instructions
+	prototypes
+	lineinfo
+)
+
 type settings struct {
 	BytecodeCompress bool
 	PreserveLineInfo bool
@@ -22,6 +31,7 @@ type vmdata struct {
 	Loop     *ast.IfStmt
 	Settings settings
 	Deserialize *ast.FunctionExpr
+	Order 	 []byte
 	Key      byte
 	Bool     int
 	Float    int
@@ -32,18 +42,46 @@ type vmdata struct {
 }
 
 //go:embed "patterns/constloop.lua"
-var strConstLoop string
-var astConstLoop []ast.Stmt
+var strConstants string
+var astConstants []ast.Stmt
 
-func (data *vmdata) constants(chunk []ast.Stmt) bool {
-	success, exprs, _ := beautifier.Match(chunk, astConstLoop)
-	if !success {
-		return false
+//go:embed "patterns/instructions.lua"
+var strInstructions string
+var astInstructions []ast.Stmt
+
+var strParameters = "Chunk[3] = gBits8();"
+var astParameters []ast.Stmt
+
+var strPrototypes = "for Idx=1,gBits32() do Functions[Idx-1]=Deserialize();end;"
+var astPrototypes []ast.Stmt
+
+var strLineinfo = "for Idx=1,gBits32() do Lines[Idx]=gBits32();end;"
+var astLineinfo []ast.Stmt
+
+func (data *vmdata) order(chunk []ast.Stmt) bool {
+	for _, stmt := range chunk {
+		switch stmt.(type) {
+		case *ast.NumberForStmt:
+			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astParameters); success {
+				data.Order = append(data.Order, parameters)
+			}
+			if success, exprs, _ := beautifier.Match([]ast.Stmt{stmt}, astConstants); success {
+				data.Bool, _ = strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
+				data.Float, _ = strconv.Atoi(exprs[1].(*ast.NumberExpr).Value)
+				data.String, _ = strconv.Atoi(exprs[2].(*ast.NumberExpr).Value)
+				data.Order = append(data.Order, constants)
+			}
+			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astInstructions); success {
+				data.Order = append(data.Order, instructions)
+			}
+		case *ast.AssignStmt:
+			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astLineinfo); success {
+				data.Order = append(data.Order, lineinfo)
+			}
+		}
 	}
-	data.Bool, _ = strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
-	data.Float, _ = strconv.Atoi(exprs[1].(*ast.NumberExpr).Value)
-	data.String, _ = strconv.Atoi(exprs[2].(*ast.NumberExpr).Value)
-	return true
+
+	return false
 }
 
 //go:embed patterns/compressed.lua
@@ -96,10 +134,10 @@ func (data *vmdata) normal(chunk []ast.Stmt) bool {
 }
 
 //go:embed patterns/lineinfo.lua
-var strLineinfo string
-var astLineinfo []ast.Stmt
+var strWithlineinfo string
+var astWithlineinfo []ast.Stmt
 
-func (data *vmdata) lineinfo(chunk []ast.Stmt) bool {
+func (data *vmdata) withlineinfo(chunk []ast.Stmt) bool {
 
 	return true
 }
@@ -109,13 +147,11 @@ func (data *vmdata) GetVmdata(chunk []ast.Stmt) (err error) {
 		return errors.New("Couldn't get VM bytecode")
 	}
 
-	if !(data.normal(chunk) || data.lineinfo(chunk)) {
+	if !(data.normal(chunk) || data.withlineinfo(chunk)) {
 		return errors.New("Couldn't get VM data")
 	}
 
-	if !data.constants(data.Deserialize.Stmts) {
-		return errors.New("Couldn't get constant keys")
-	}
+
 
 	return nil
 }
@@ -135,5 +171,5 @@ func initVmdata() {
 	astUncompressed = compile(strUncompressed)
 
 	astNormal = compile(strNormal)
-	astLineinfo = compile(strLineinfo)
+	astWithlineinfo = compile(strWithlineinfo)
 }
