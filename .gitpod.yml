@@ -1,5 +1,5 @@
-image: golang:1.16-alpine
-
+image:
+  file: .gitpod.Dockerfile
 tasks:
   - init: go get && go build ./... && go test ./...
     command: go run
