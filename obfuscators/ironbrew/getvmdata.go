@@ -27,18 +27,18 @@ type settings struct {
 }
 
 type vmdata struct {
-	Loop     *ast.IfStmt
-	Settings settings
+	Loop        *ast.IfStmt
+	Settings    settings
 	Deserialize *ast.FunctionExpr
-	Order 	 []byte
-	Pos int
-	Key      byte
-	Bool     int
-	Float    int
-	String   int
-	Env      string
-	Upvalues string
-	Bytecode []byte
+	Order       []byte
+	Pos         int
+	Key         byte
+	Bool        int
+	Float       int
+	String      int
+	Env         string
+	Upvalues    string
+	Bytecode    []byte
 }
 
 //go:embed "patterns/constants.lua"

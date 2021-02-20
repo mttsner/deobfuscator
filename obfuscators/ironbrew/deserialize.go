@@ -6,29 +6,30 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-func (data *vmdata) Ironbrew(Opcodemap map[int][]string) *lua.FunctionProto {
+func (data *vmdata) deserialize(Opcodemap map[int][]string) *lua.FunctionProto {
 	function := helper.NewFunctionProto()
-	constCount := data.gBits32()
-	for i := 0; i < constCount; i++ {
-		switch data.gBits8() {
-		case data.Bool:
-			function.Constants = append(function.Constants, lua.LBool(data.gBits8() != 0))
-		case data.Float:
-			function.Constants = append(function.Constants, lua.LNumber(data.gFloat()))
-		case data.String:
-			function.Constants = append(function.Constants, lua.LString(data.gString()))
-		}
-	}
 	for _, v := range data.Order {
 		switch v {
-		case 1:
+		case constants:
+			constCount := data.gBits32()
+			for i := 0; i < constCount; i++ {
+				switch data.gBits8() {
+				case data.Bool:
+					function.Constants = append(function.Constants, lua.LBool(data.gBits8() != 0))
+				case data.Float:
+					function.Constants = append(function.Constants, lua.LNumber(data.gFloat()))
+				case data.String:
+					function.Constants = append(function.Constants, lua.LString(data.gString()))
+				}
+			}
+		case parameters:
 			function.NumParameters = uint8(data.gBits8())
-		case 2:
+		case prototypes:
 			protosCount := data.gBits32()
 			for i := 0; i < protosCount; i++ {
-				function.FunctionPrototypes = append(function.FunctionPrototypes, data.IronBrew(Opcodemap))
+				function.FunctionPrototypes = append(function.FunctionPrototypes, data.deserialize(Opcodemap))
 			}
-		case 3:
+		case instructions:
 			var pc int
 			instructions := data.gBits32()
 			for i := 0; i < instructions; i++ {
@@ -56,10 +57,10 @@ func (data *vmdata) Ironbrew(Opcodemap map[int][]string) *lua.FunctionProto {
 						instruction.C = data.gBits16()
 					}
 					function = append(function, createOpcode(instruction))
-					pc++ // Maybe it needs to be outside the if statement
+					pc++
 				}
 			}
-		case 4:
+		case lineinfo:
 			lineCount := data.gBits32()
 			for i := 0; i < lineCount; i++ {
 				function.DbgSourcePositions = append(function.DbgSourcePositions, data.gBits32())
