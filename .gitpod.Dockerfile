@@ -4,6 +4,7 @@ FROM golang:1.16-alpine
 RUN apk update \
     # Install other tools.
     && go get -u -v \
+        golang.org/x/tools@v0.1.1-0.20210201201750-4d4ee958a9b7 \
         github.com/mdempsky/gocode \
         github.com/uudashr/gopkgs/v2/cmd/gopkgs \
         github.com/ramya-rao-a/go-outline \
