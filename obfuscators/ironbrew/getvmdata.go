@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/notnoobmaster/beautifier"
-	//"github.com/notnoobmaster/deobfuscator"
 	"github.com/yuin/gopher-lua/ast"
 	"github.com/yuin/gopher-lua/parse"
 )
@@ -62,10 +61,6 @@ func (data *vmdata) order(chunk []ast.Stmt) bool {
 	for _, stmt := range chunk {
 		switch stmt.(type) {
 		case *ast.NumberForStmt:
-			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astParameters); success {
-				data.Order = append(data.Order, parameters)
-				break
-			}
 			if success, exprs, _ := beautifier.Match([]ast.Stmt{stmt}, astConstants); success {
 				data.Bool, _ = strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
 				data.Float, _ = strconv.Atoi(exprs[1].(*ast.NumberExpr).Value)
@@ -77,9 +72,17 @@ func (data *vmdata) order(chunk []ast.Stmt) bool {
 				data.Order = append(data.Order, instructions)
 				break
 			}
-		case *ast.AssignStmt:
+			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astPrototypes); success {
+				data.Order = append(data.Order, prototypes)
+				break
+			}
 			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astLineinfo); success {
 				data.Order = append(data.Order, lineinfo)
+				break
+			}
+		case *ast.AssignStmt:
+			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astParameters); success {
+				data.Order = append(data.Order, parameters)
 			}
 		}
 	}
