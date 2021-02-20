@@ -1,4 +1,4 @@
-local function Wrap(Chunk, IdentExpr$, IdentExpr$) -- Upvalues and Env
+local function Wrap(Chunk, _IdentExpr_, _IdentExpr_) -- Upvalues and Env
 	local Instr  = Chunk[1];
 	local Proto  = Chunk[2];
 	local Params = Chunk[3];

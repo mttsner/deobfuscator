@@ -1,12 +1,15 @@
+package ironbrew
+
 import (
 	"errors"
 	"strconv"
-	"embed"
+	_ "embed"
+	"strings"
 
 	"github.com/notnoobmaster/beautifier"
 	//"github.com/notnoobmaster/deobfuscator"
-	"github.com/yuin/gopher-lua/ast"
 	"github.com/yuin/gopher-lua/parse"
+	"github.com/yuin/gopher-lua/ast"
 )
 
 type settings struct {
@@ -25,7 +28,7 @@ type vmdata struct {
 	Settings settings
 }
 
-//go:embed "patterns/gbits32.lua
+//go:embed "patterns/gbits32.lua"
 var strBtis32 string
 var astBits32 []ast.Stmt
 
@@ -34,7 +37,7 @@ func (data *vmdata) getBits32Data(chunk []ast.Stmt) bool {
 	if !success {
 		return false
 	}
-	key := strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
+	key, _ := strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
 	data.Key = byte(key)
 	return true
 }
@@ -55,7 +58,7 @@ func (data *vmdata) getConstLoopData(chunk []ast.Stmt) bool {
 }
 
 //go:embed "patterns/wrap.lua"
-var astWrap string
+var strWrap string
 var astWrap []ast.Stmt
 
 //go:embed "patterns/wraplineinfo.lua"
@@ -84,7 +87,7 @@ var strCompressed string
 var astCompressed []ast.Stmt
 
 //go:embed "patterns/bytestring.lua"
-var astNormal string
+var strNormal string
 var astNormal []ast.Stmt
 
 func (data *vmdata) getBytecode(chunk []ast.Stmt) bool {
@@ -96,7 +99,6 @@ func (data *vmdata) getBytecode(chunk []ast.Stmt) bool {
 	success, exprs = beautifier.Match(chunk, astCompressed)
 	if success {
 		byteString := exprs[0].(*ast.StringExpr).Value
-		bytecode, err := decompress(byteString)
 		if bytecode, err := decompress(byteString); err == nil {
 			data.Settings.BytecodeCompress = true
 			data.Bytecode = bytecode
@@ -122,18 +124,19 @@ func (data *vmdata) GetVmdata(chunk []ast.Stmt) (err error){
 	return
 }
 
-func parse(str string) []ast.Stmt {
+func compile(str string) []ast.Stmt {
 	chunk, err := parse.Parse(strings.NewReader(str), "")
 	if err != nil {
-		panic("Ironbrew: pattern parsing failed")
+		panic(err)//panic("Ironbrew: pattern parsing failed")
 	}
+	return chunk
 }
 
 func initVmdata() {
-	astBits32 = parse(strBtis32)
-	astConstLoop = parse(strConstLoop)
-	astWrap = parse(strWrap)
-	astWrapLineInfo = parse(strWrapLineInfo)
-	astCompressed = parse(strCompressed)
-	astNormal = parse(strNormal)
+	astBits32 = compile(strBtis32)
+	astConstLoop = compile(strConstLoop)
+	astWrap = compile(strWrap)
+	astWrapLineInfo = compile(strWrapLineInfo)
+	astCompressed = compile(strCompressed)
+	astNormal = compile(strNormal)
 }
