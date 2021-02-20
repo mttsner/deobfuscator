@@ -41,7 +41,7 @@ type vmdata struct {
 	Bytecode []byte
 }
 
-//go:embed "patterns/constloop.lua"
+//go:embed "patterns/constants.lua"
 var strConstants string
 var astConstants []ast.Stmt
 
@@ -64,15 +64,18 @@ func (data *vmdata) order(chunk []ast.Stmt) bool {
 		case *ast.NumberForStmt:
 			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astParameters); success {
 				data.Order = append(data.Order, parameters)
+				break
 			}
 			if success, exprs, _ := beautifier.Match([]ast.Stmt{stmt}, astConstants); success {
 				data.Bool, _ = strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
 				data.Float, _ = strconv.Atoi(exprs[1].(*ast.NumberExpr).Value)
 				data.String, _ = strconv.Atoi(exprs[2].(*ast.NumberExpr).Value)
 				data.Order = append(data.Order, constants)
+				break
 			}
 			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astInstructions); success {
 				data.Order = append(data.Order, instructions)
+				break
 			}
 		case *ast.AssignStmt:
 			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astLineinfo); success {
@@ -81,7 +84,7 @@ func (data *vmdata) order(chunk []ast.Stmt) bool {
 		}
 	}
 
-	return false
+	return true
 }
 
 //go:embed patterns/compressed.lua
@@ -151,7 +154,9 @@ func (data *vmdata) GetVmdata(chunk []ast.Stmt) (err error) {
 		return errors.New("Couldn't get VM data")
 	}
 
-
+	if !data.order(data.Deserialize.Stmts) {
+		return errors.New("Couldn't get order")
+	}
 
 	return nil
 }
@@ -165,7 +170,11 @@ func compile(str string) []ast.Stmt {
 }
 
 func initVmdata() {
-	astConstLoop = compile(strConstLoop)
+	astConstants = compile(strConstants)
+	astInstructions = compile(strInstructions)
+	astPrototypes = compile(strPrototypes)
+	astLineinfo = compile(strLineinfo)
+	astParameters = compile(strParameters)
 
 	astCompressed = compile(strCompressed)
 	astUncompressed = compile(strUncompressed)
