@@ -25,3 +25,5 @@ RUN apk update \
         golang.org/x/tools/gopls@v0.6.5
 
 ENV GOPATH=/workspace/go
+ENV GO111MODULE=on
+ENV GOPRIVATE=github.com/notnoobmaster
