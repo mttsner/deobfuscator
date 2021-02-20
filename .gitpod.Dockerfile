@@ -1,9 +1,5 @@
 FROM golang:1.16-alpine
 
-RUN apk update
-
-RUN apk -y install git
-
 # Install Go tools.
 RUN apk update \
     # Install other tools.
