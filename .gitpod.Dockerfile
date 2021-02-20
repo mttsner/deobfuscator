@@ -21,8 +21,4 @@ RUN apk update \
         github.com/rogpeppe/godef \
         github.com/sqs/goreturns \
         golang.org/x/lint/golint \
-        golang.org/x/tools/gopls \
-    # Clean up.
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
+        golang.org/x/tools/gopls
