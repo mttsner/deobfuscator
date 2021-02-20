@@ -21,5 +21,6 @@ RUN apk update \
         github.com/stamblerre/gocode \
         github.com/rogpeppe/godef \
         github.com/sqs/goreturns \
-        golang.org/x/lint/golint \
-        golang.org/x/tools/gopls
+        golang.org/x/lint/golint && \
+    GO111MODULE=on go get -u -v \
+        golang.org/x/tools/gopls@v0.6.5
