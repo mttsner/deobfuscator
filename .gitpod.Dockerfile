@@ -1,5 +1,8 @@
 FROM golang:1.16-alpine
 
+ENV GOPATH=$HOME/go-packages
+ENV GOROOT=$HOME/go
+
 # Install Go tools.
 RUN apk update \
     # Install other tools.
