@@ -1,9 +1,10 @@
 package ironbrew
 
 import (
+	// assigned to _ because go:embed doesn't work without requiring embed
+	_ "embed"
 	"errors"
 	"strconv"
-	_ "embed"
 	"strings"
 
 	"github.com/notnoobmaster/beautifier"
