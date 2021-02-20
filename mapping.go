@@ -55,11 +55,27 @@ func (s *state) solveIf(stmt *ast.IfStmt) error {
 	}
 	switch relational.Operator {
 	case "==":
-		s.Opcodemap[op] = s.chunkToOp(stmt.Then)
-		s.Opcodemap[op+1] = s.chunkToOp(stmt.Else)
+		op1, err := s.chunkToOp(stmt.Then)
+		if !ok {
+			return err
+		}
+		op2, err := s.chunkToOp(stmt.Else)
+		if !ok {
+			return err
+		}
+		s.Opcodemap[op] = op1
+		s.Opcodemap[op+1] = op2
 	case ">":
-		s.Opcodemap[op+1] = s.chunkToOp(stmt.Then)
-		s.Oopcodemap[op] = s.chunkToOp(stmt.Else)
+		op1, err := s.chunkToOp(stmt.Else)
+		if !ok {
+			return err
+		}
+		op2, err := s.chunkToOp(stmt.Then)
+		if !ok {
+			return err
+		}
+		s.Opcodemap[op] = op1
+		s.Opcodemap[op+1] = op2
 	case "<=":
 		if inner, ok := stmt.Then[0].(*ast.IfStmt); ok && len(stmt.Then) == 1 {
 			s.solveIf(inner)
