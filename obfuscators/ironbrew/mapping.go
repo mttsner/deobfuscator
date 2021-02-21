@@ -18,6 +18,8 @@ type mapData struct {
 	Hashmap     map[string]func(*opcodemap.Instruction)uint32
 }
 
+var delimiter string
+
 func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, error) {
 	pos := 0
 	for pos < len(chunk) {
@@ -39,8 +41,9 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 		if create, ok := data.Hashmap[hash]; ok {
 			inst := opcodemap.Instruction{Func: create}
 			superop.Instructions = append(superop.Instructions, &inst)
+		} else {
+			return nil, errors.New("shit hit the fan")
 		}
-		return nil, errors.New("shit hit the fan")
 	}
 	return &instruction, nil
 }
@@ -109,7 +112,7 @@ func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]
 		Variables: variables,
 		Hashmap: hashmap,
 		Opcodemap: make(map[int]*opcodemap.Instruction),
-		Delimiter: opcodemap.Delimiter,
+		Delimiter: delimiter,
 	}
 	err := data.solveIf(stmt)
 	if err != nil {
@@ -119,6 +122,10 @@ func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]
 }
 
 func initMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
+	delim, err := parse.Parse(strings.NewReader(opcodemap.Delimiter), "")
+	if err != nil {
+		return nil, err
+	}
 	// We need to detect some variable names or else some opcodes have the same hash.
 	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint",}
 	replace := map[string]byte{
@@ -128,6 +135,9 @@ func initMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 		"OP_ENUM": helper.NumberExpr, 
 		"OP_MOVE": helper.NumberExpr,
 	}
+
+	delimiter = helper.GenerateHash(delim, variables)
+
 	hashmap := make(map[string]func(*opcodemap.Instruction)uint32)
 
 	for str, function := range opcodemap.OpCodes {
