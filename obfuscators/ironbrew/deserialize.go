@@ -27,7 +27,11 @@ func (data *vmdata) deserialize() (*lua.FunctionProto, error) {
 		case prototypes:
 			protosCount := data.gBits32()
 			for i := 0; i < protosCount; i++ {
-				function.FunctionPrototypes = append(function.FunctionPrototypes, data.deserialize(Opcodemap))
+				proto, err := data.deserialize()
+				if err != nil {
+					return nil, err
+				}
+				function.FunctionPrototypes = append(function.FunctionPrototypes, proto)
 			}
 		case instructions:
 			var pc int
@@ -40,7 +44,7 @@ func (data *vmdata) deserialize() (*lua.FunctionProto, error) {
 				if helper.GetBit(descriptor,0,0) == 0 {
 					Type := helper.GetBit(descriptor,1,2)
 					opcode := data.gBits16()
-					instruction := Opcodemap[opcode]
+					instruction := data.Opcodemap[opcode]
 					
 					if isSuperop {
 						if opcode == 0 {

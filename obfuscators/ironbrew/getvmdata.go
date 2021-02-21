@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/notnoobmaster/beautifier"
+	"github.com/notnoobmaster/deobfuscator/obfuscators/ironbrew/opcodemap"
 	"github.com/yuin/gopher-lua/ast"
 	"github.com/yuin/gopher-lua/parse"
 )
@@ -30,6 +31,7 @@ type vmdata struct {
 	Loop        *ast.IfStmt
 	Settings    settings
 	Deserialize *ast.FunctionExpr
+	Opcodemap	[]*opcodemap.Instruction
 	Order       []byte
 	Pos         int
 	Key         byte

@@ -1,29 +1,43 @@
 package ironbrew
 
 import (
-	"fmt"
-
 	"github.com/notnoobmaster/deobfuscator/obfuscators/ironbrew/opcodemap"
 	lua "github.com/yuin/gopher-lua"
 	"github.com/yuin/gopher-lua/ast"
 )
 
-const debug = false
+//const debug = false
 var hashmap map[string]func(*opcodemap.Instruction)uint32
 
 // Deobfuscate ironbrew
 func Deobfuscate(chunk []ast.Stmt)(*lua.FunctionProto, error)  {
 	data := vmdata{}
-	if err := data.getVmdata(chunk); err != nil {
-		return nil, err
-	}
-	variables := []string{data.Env, data.Upvalues}
-	opmap, err := GenerateOpcodemap(data.Loop, variables, hashmap)
+	err := data.getVmdata(chunk)
 	if err != nil {
 		return nil, err
 	}
-	proto, err := data.deserialize(opmap)
+	variables := []string{data.Env, data.Upvalues}
+	data.Opcodemap, err = GenerateOpcodemap(data.Loop, variables, hashmap)
+	if err != nil {
+		return nil, err
+	}
+	return data.deserialize()
+}
 
+// InitIronbrew sets up everything needed for it to work
+func Initialize() error {
+	err := initVmdata()
+	if err != nil {
+		return err
+	}
+	hashmap, err = initMapping()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
 	if debug {
 		fmt.Println("Obfuscator: Ironbrew")
 		fmt.Printf("Obfuscation settings: %+v\n", data.Settings)
@@ -40,19 +54,4 @@ func Deobfuscate(chunk []ast.Stmt)(*lua.FunctionProto, error)  {
 		//fmt.Println("data loop found:", data.dataLoop != nil)
 		//fmt.Println("Bytecode:", data.Bytecode)
 	}
-
-	return proto, nil
-}
-
-// InitIronbrew sets up everything needed for it to work
-func Initialize() error {
-	err := initVmdata()
-	if err != nil {
-		return err
-	}
-	hashmap, err = initMapping()
-	if err != nil {
-		return err
-	}
-	return nil
-}
+*/
