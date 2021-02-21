@@ -118,8 +118,14 @@ func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]
 
 func initMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 	// We need to detect some variable names or else some opcodes have the same hash.
-	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint", "OP_A", "OP_B", "OP_C", "OP_ENUM", "OP_MOVE"}
-
+	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint",}
+	replace := map[string]byte{
+		"OP_A": beautifier.NumberExpr, 
+		"OP_B": beautifier.NumberExpr, 
+		"OP_C": beautifier.NumberExpr, 
+		"OP_ENUM": beautifier.NumberExpr, 
+		"OP_MOVE": beautifier.NumberExpr,
+	}
 	hashmap := make(map[string]func(*opcodemap.Instruction)uint32)
 
 	for str, function := range opcodemap.OpCodes {
@@ -128,7 +134,7 @@ func initMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 			return nil, errors.New("Parsing somehow fucked up when generating the hashmap!\nStr:\n"+str)
 		}
 
-		hash := beautifier.GenerateHash(chunk, variables)
+		hash := beautifier.GenerateHashWithReplace(chunk, variables, replace)
 		// Making sure that we accidentally don't have duplicate hashes. 
 		if _, ok := hashmap[hash]; ok {
 			return nil, errors.New("Same Hash\n" + str)

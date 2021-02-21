@@ -81,7 +81,7 @@ local function Wrap(Chunk, _IdentExpr_, _IdentExpr_)
 		local Params = Params;
 
 		local _R = _R
-		local InstrPoint = 1;
+		local _IdentExpr_ = 1;
 		local Top = -1;
 
 		local Vararg = {};
@@ -89,15 +89,15 @@ local function Wrap(Chunk, _IdentExpr_, _IdentExpr_)
 
 		local PCount = Select('#', ...) - 1;
 
-		local Lupvals	= {};
-		local Stk		= {};
+		local Lupvals	  = {};
+		local _IdentExpr_ = {};
 
 		for Idx = 0, PCount do end;
 
 		local Varargsz = PCount - Params + 1
 
-		local Inst;
-		local Enum;	
+		local _IdentExpr_;
+		local _IdentExpr_;	
 
 		while true do
 			Inst		= Instr[InstrPoint];

@@ -11,6 +11,8 @@ github.com/notnoobmaster/beautifier v1.2.2 h1:EpMqO+DoP1TXdExL8rAPOgpvaWeXYtvPPs
 github.com/notnoobmaster/beautifier v1.2.2/go.mod h1:fQ6itMvYWFeqN42EwnUHVj2/2YlO5X+nhNQvJEvw+0s=
 github.com/notnoobmaster/beautifier v1.2.3 h1:OvE8E6AJfgp4HgB91nHAdP/NrJcSONSigIk48qRHCL0=
 github.com/notnoobmaster/beautifier v1.2.3/go.mod h1:fQ6itMvYWFeqN42EwnUHVj2/2YlO5X+nhNQvJEvw+0s=
+github.com/notnoobmaster/beautifier v1.2.4 h1:xxzVRhKln+vHdeItBtkKb5a/mUG8SkSzsWkyN8tEmtA=
+github.com/notnoobmaster/beautifier v1.2.4/go.mod h1:fQ6itMvYWFeqN42EwnUHVj2/2YlO5X+nhNQvJEvw+0s=
 github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da h1:NimzV1aGyq29m5ukMK0AMWEhFaL/lrEOaephfuoiARg=
 github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da/go.mod h1:E1AXubJBdNmFERAOucpDIxNzeGfLzg0mYh+UfMWdChA=
 golang.org/x/sys v0.0.0-20190204203706-41f3e6584952/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
