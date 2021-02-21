@@ -1,6 +1,8 @@
 package ironbrew
 
 import (
+	"fmt"
+
 	"github.com/notnoobmaster/deobfuscator/obfuscators/ironbrew/opcodemap"
 	lua "github.com/yuin/gopher-lua"
 	"github.com/yuin/gopher-lua/ast"
@@ -31,6 +33,7 @@ func Initialize() error {
 		return err
 	}
 	hashmap, err = initMapping()
+	fmt.Print(len(hashmap))
 	if err != nil {
 		return err
 	}

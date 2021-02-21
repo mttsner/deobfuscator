@@ -71,29 +71,29 @@ func (data *mapData) solveIf(stmt *ast.IfStmt) error {
 	switch relational.Operator {
 	case "==":
 		op1, err := data.chunkToOp(stmt.Then)
-		if !ok {
+		if err != nil {
 			return err
 		}
 		op2, err := data.chunkToOp(stmt.Else)
-		if !ok {
+		if err != nil {
 			return err
 		}
 		data.Opcodemap[op] = op1
 		data.Opcodemap[op+1] = op2
 	case ">":
 		op1, err := data.chunkToOp(stmt.Else)
-		if !ok {
+		if err != nil {
 			return err
 		}
 		op2, err := data.chunkToOp(stmt.Then)
-		if !ok {
+		if err != nil {
 			return err
 		}
 		data.Opcodemap[op] = op1
 		data.Opcodemap[op+1] = op2
 	case "<=":
 		if inner, ok := stmt.Then[0].(*ast.IfStmt); ok && len(stmt.Then) == 1 {
-			data.solveIf(inner)
+			return data.solveIf(inner)
 		} else {
 			return errors.New("Malformed if statement, expected elseif")
 		}
