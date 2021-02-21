@@ -18,7 +18,7 @@ func TestGetVmdata(t *testing.T) {
 	}
 	initVmdata()
 	data := vmdata{}
-	err = data.GetVmdata(chunk)
+	err = data.getVmdata(chunk)
 	t.Logf("%#v", data)
 	if err == nil {
 		t.Error(err)
@@ -26,7 +26,7 @@ func TestGetVmdata(t *testing.T) {
 }
 
 func TestInitIronbrew(t *testing.T) {
-	err := InitIronbrew()
+	err := initIronbrew()
 	if err != nil {
 		t.Error(err)
 	}

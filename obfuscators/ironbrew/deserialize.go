@@ -6,7 +6,7 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-func (data *vmdata) deserialize(Opcodemap map[int]*opcodemap.Instruction) *lua.FunctionProto {
+func (data *vmdata) deserialize() (*lua.FunctionProto, error) {
 	function := helper.NewFunctionProto()
 	for _, v := range data.Order {
 		switch v {
@@ -84,5 +84,5 @@ func (data *vmdata) deserialize(Opcodemap map[int]*opcodemap.Instruction) *lua.F
 			}
 		}
 	}
-	return function
+	return function, nil
 }

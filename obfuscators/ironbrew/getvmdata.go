@@ -149,7 +149,7 @@ func (data *vmdata) withlineinfo(chunk []ast.Stmt) bool {
 	return true
 }
 
-func (data *vmdata) GetVmdata(chunk []ast.Stmt) (err error) {
+func (data *vmdata) getVmdata(chunk []ast.Stmt) (err error) {
 	if !(data.compressed(chunk) || data.uncompressed(chunk)) {
 		return errors.New("Couldn't get VM bytecode")
 	}
