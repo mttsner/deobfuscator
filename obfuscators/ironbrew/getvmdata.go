@@ -139,11 +139,14 @@ func (data *vmdata) normal(chunk []ast.Stmt) bool {
 	key, _ := strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
 	data.Key = byte(key)
 	data.Deserialize = exprs[1].(*ast.FunctionExpr)
-	data.Upvalues = exprs[2].(*ast.IdentExpr).Value
-	data.Env = exprs[3].(*ast.IdentExpr).Value
-	data.InstPtr = exprs[4].(*ast.IdentExpr).Value
-	data.Stack = exprs[5].(*ast.IdentExpr).Value
-	data.Inst = exprs[6].(*ast.IdentExpr).Value
+	
+	data.InstPtr = exprs[2].(*ast.IdentExpr).Value
+	data.Stack = exprs[3].(*ast.IdentExpr).Value
+	data.Inst = exprs[4].(*ast.IdentExpr).Value
+
+	data.Upvalues = exprs[5].(*ast.IdentExpr).Value
+	data.Env = exprs[6].(*ast.IdentExpr).Value
+
 	data.Loop = stmts[0].(*ast.IfStmt)
 	return success
 }

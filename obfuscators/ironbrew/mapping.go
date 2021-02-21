@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/notnoobmaster/beautifier"
+	"github.com/notnoobmaster/deobfuscator/helper"
 	"github.com/notnoobmaster/deobfuscator/obfuscators/ironbrew/opcodemap"
 	"github.com/yuin/gopher-lua/ast"
 	"github.com/yuin/gopher-lua/parse"
@@ -26,7 +26,7 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 		}
 		pos++
 	}
-	pattern := beautifier.GenerateHash(chunk[pos:], data.Variables)
+	pattern := helper.GenerateHash(chunk[pos:], data.Variables)
 	hashes := strings.Split(pattern, data.Delimiter)
 
 	instruction := opcodemap.Instruction{}
@@ -46,7 +46,7 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 }
 
 func (data *mapData) chunkToOp(chunk []ast.Stmt) (*opcodemap.Instruction, error) {
-	hash := beautifier.GenerateHash(chunk, data.Variables)
+	hash := helper.GenerateHash(chunk, data.Variables)
 	if _, ok := data.Hashmap[hash]; !ok {
 		return data.solveSuperOp(chunk)
 	}
@@ -121,11 +121,11 @@ func initMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 	// We need to detect some variable names or else some opcodes have the same hash.
 	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint",}
 	replace := map[string]byte{
-		"OP_A": beautifier.NumberExpr, 
-		"OP_B": beautifier.NumberExpr, 
-		"OP_C": beautifier.NumberExpr, 
-		"OP_ENUM": beautifier.NumberExpr, 
-		"OP_MOVE": beautifier.NumberExpr,
+		"OP_A": helper.NumberExpr, 
+		"OP_B": helper.NumberExpr, 
+		"OP_C": helper.NumberExpr, 
+		"OP_ENUM": helper.NumberExpr, 
+		"OP_MOVE": helper.NumberExpr,
 	}
 	hashmap := make(map[string]func(*opcodemap.Instruction)uint32)
 
@@ -135,7 +135,7 @@ func initMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 			return nil, errors.New("Parsing somehow fucked up when generating the hashmap!\nStr:\n"+str)
 		}
 
-		hash := beautifier.GenerateHashWithReplace(chunk, variables, replace)
+		hash := helper.GenerateHashWithReplace(chunk, variables, replace)
 		// Making sure that we accidentally don't have duplicate hashes. 
 		if _, ok := hashmap[hash]; ok {
 			return nil, errors.New("Same Hash\n" + str)

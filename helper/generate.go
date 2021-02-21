@@ -1,4 +1,4 @@
-package beautifier
+package helper
 
 import (
 	"bytes"
@@ -176,7 +176,7 @@ func (s *data) traverseStmts(chunk []ast.Stmt) {
 		case *ast.LocalAssignStmt:
 			s.Hash.WriteByte(assignStmt)
 			for _, name := range stmt.Names {
-				s.traverseExpr(ast.IdentExpr{Value: name})
+				s.traverseExpr(&ast.IdentExpr{Value: name})
 			}
 			s.traverseExprs(stmt.Exprs)
 		case *ast.FuncCallStmt:

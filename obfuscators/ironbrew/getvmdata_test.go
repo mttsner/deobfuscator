@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/notnoobmaster/deobfuscator/helper"
 	"github.com/yuin/gopher-lua/parse"
 )
 
@@ -56,7 +57,27 @@ Stk[A](Unpack(Stk, A + 1, Inst[OP_B])
 `
 
 func TestHash(t *testing.T) {
-
+	chunk1, err := parse.Parse(strings.NewReader(str), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	chunk2, err := parse.Parse(strings.NewReader(vm), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint",}
+	replace := map[string]byte{
+		"OP_A": helper.NumberExpr, 
+		"OP_B": helper.NumberExpr, 
+		"OP_C": helper.NumberExpr, 
+		"OP_ENUM": helper.NumberExpr, 
+		"OP_MOVE": helper.NumberExpr,
+	}
+	hash1 := helper.GenerateHashWithReplace(chunk1, variables, replace)
+	hash2 := helper.GenerateHash(chunk2, variables)
+	if hash1 != hash2 {
+		t.Error(hash1, hash2)
+	}
 }
 
 /*
