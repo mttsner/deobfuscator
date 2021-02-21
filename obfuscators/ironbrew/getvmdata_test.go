@@ -45,15 +45,14 @@ func TestDeobfuscate(t *testing.T) {
 	}
 }
 
-const vm = 
-`
-local A = Inst[2]
+const vm = `
+A = Inst[2]
 Stk[A](Unpack(Stk, A + 1, Inst[3]))
 `
 
 const str = `
 local A = Inst[OP_A]
-Stk[A](Unpack(Stk, A + 1, Inst[OP_B])
+Stk[A](Unpack(Stk, A + 1, Inst[OP_B]))
 `
 
 func TestHash(t *testing.T) {
