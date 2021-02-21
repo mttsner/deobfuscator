@@ -16,7 +16,7 @@ func Deobfuscate(chunk []ast.Stmt)(*lua.FunctionProto, error)  {
 	if err != nil {
 		return nil, err
 	}
-	variables := []string{data.Env, data.Upvalues}
+	variables := []string{data.Stack, data.Inst, data.Env, data.Upvalues, data.InstPtr}
 	data.Opcodemap, err = GenerateOpcodemap(data.Loop, variables, hashmap)
 	if err != nil {
 		return nil, err

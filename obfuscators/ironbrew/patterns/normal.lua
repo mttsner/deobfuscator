@@ -97,7 +97,7 @@ local function Wrap(Chunk, _IdentExpr_, _IdentExpr_)
 		local Varargsz = PCount - Params + 1
 
 		local _IdentExpr_;
-		local _IdentExpr_;	
+		local Enum;	
 
 		while true do
 			Inst		= Instr[InstrPoint];

@@ -47,7 +47,7 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 
 func (data *mapData) chunkToOp(chunk []ast.Stmt) (*opcodemap.Instruction, error) {
 	hash := beautifier.GenerateHash(chunk, data.Variables)
-	if _, ok := data.Hashmap[hash]; ok {
+	if _, ok := data.Hashmap[hash]; !ok {
 		return data.solveSuperOp(chunk)
 	}
 	inst := opcodemap.Instruction{}

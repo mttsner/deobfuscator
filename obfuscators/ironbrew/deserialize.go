@@ -54,7 +54,7 @@ func (data *vmdata) deserialize() (*lua.FunctionProto, error) {
 							isSuperop = false
 						}
 						
-					} else if instruction.IsSuperop {
+					} else if (*instruction).IsSuperop {
 						superop = instruction.Superop
 						isSuperop = true
 					}
