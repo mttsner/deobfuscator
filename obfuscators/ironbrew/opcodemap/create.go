@@ -1,5 +1,6 @@
 package opcodemap
 
+// SuperOperator holds all the data needed to work with superoperators
 type SuperOperator struct {
 	Instructions []*Instruction
 	Pos int
