@@ -32,6 +32,18 @@ func TestInitIronbrew(t *testing.T) {
 	}
 }
 
+func TestDeobfuscate(t *testing.T) {
+	chunk, err := parse.Parse(strings.NewReader(test), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	Initialize()
+	_, err = Deobfuscate(chunk)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 /*
 func TestMatch(t *testing.T) {
 	target, _ := parse.Parse(strings.NewReader(strTarget), "")

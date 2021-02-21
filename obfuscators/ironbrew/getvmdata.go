@@ -31,7 +31,7 @@ type vmdata struct {
 	Loop        *ast.IfStmt
 	Settings    settings
 	Deserialize *ast.FunctionExpr
-	Opcodemap	[]*opcodemap.Instruction
+	Opcodemap	map[int]*opcodemap.Instruction
 	Order       []byte
 	Pos         int
 	Key         byte

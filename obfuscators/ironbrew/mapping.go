@@ -14,7 +14,7 @@ import (
 type mapData struct {
 	Delimiter   string
 	Variables   []string
-	Opcodemap   []*opcodemap.Instruction
+	Opcodemap   map[int]*opcodemap.Instruction
 	Hashmap     map[string]func(*opcodemap.Instruction)uint32
 }
 
@@ -104,10 +104,11 @@ func (data *mapData) solveIf(stmt *ast.IfStmt) error {
 }
 
 // GenerateOpcodemap solves the vm loop and generates a lookup table for vm opcodes to instruction creation functions
-func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]func(*opcodemap.Instruction)uint32) ([]*opcodemap.Instruction, error) {
+func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]func(*opcodemap.Instruction)uint32) (map[int]*opcodemap.Instruction, error) {
 	data := mapData{
 		Variables: variables,
 		Hashmap: hashmap,
+		Opcodemap: make(map[int]*opcodemap.Instruction),
 	}
 	err := data.solveIf(stmt)
 	if err != nil {

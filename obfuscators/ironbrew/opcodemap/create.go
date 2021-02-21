@@ -1,5 +1,7 @@
 package opcodemap
 
+import "fmt"
+
 // SuperOperator holds all the data needed to work with superoperators
 type SuperOperator struct {
 	Instructions []*Instruction
@@ -20,6 +22,7 @@ type Instruction struct {
 }
 
 func (instruction *Instruction) Create() uint32 {
+	fmt.Println(instruction.Func)
 	return instruction.Func(instruction)
 }
 
