@@ -103,23 +103,23 @@ func (data *mapData) solveIf(stmt *ast.IfStmt) error {
 	return nil
 }
 
-func generateOpcodemap(vm *vmdata, hashmap map[string]opcodemap.CreateSig) map[int]opcodemap.CreateSig {
+func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]func(*opcodemap.Instruction)uint32) ([]*opcodemap.Instruction, error) {
 	data := mapData{
-		Variables: []string{vm.Stack, vm.Instruction, vm.Env, vm.Upvalues, vm.PC},
+		Variables: variables,
 		Hashmap: hashmap,
 	}
-	return data.solveIf(vm.VMLoop.Stmts)
+	err := data.solveIf(stmt)
+	if err != nil {
+		return nil, err
+	}
+	return data.Opcodemap, nil
 }
 
-// GenerateHashmap generates the lookup table for opcode functions.
-func GenerateHashmap() map[string]func(*opcodemap.Instruction) {
+// InitMapping generates the lookup table for opcode functions.
+func InitMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 	// We need to detect some variable names or else some opcodes have the same hash.
-	variables := map[string]byte{
-		"Stk":        beautifier.Stack,
-		"Inst":       beautifier.Instruction,
-		"Env":        beautifier.Environment,
-		"Upvalues":   beautifier.Upvalues,
-		"InstrPoint": beautifier.Pointer,
+	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint"}
+	_ = map[string]byte{
 		"OP_A":       beautifier.A,
 		"OP_B":       beautifier.B,
 		"OP_C":       beautifier.C,
@@ -127,21 +127,21 @@ func GenerateHashmap() map[string]func(*opcodemap.Instruction) {
 		"OP_MOVE":    beautifier.ENUM,
 	}
 
-	opMap := make(map[string]opcodemap.CreateSig)
+	hashmap := make(map[string]func(*opcodemap.Instruction)uint32)
 
 	for str, function := range opcodemap.OpCodes {
 		chunk, err := parse.Parse(strings.NewReader(str), "")
 		if err != nil {
-			panic("Parsing somehow fucked up when generating the hashmap!")
+			return nil, errors.New("Parsing somehow fucked up when generating the hashmap!\nStr:\n"+str)
 		}
 
 		hash := beautifier.GeneratePattern(chunk, variables)
 		// Making sure that we accidentally don't have duplicate hashes. 
-		if _, ok := opMap[hash]; ok {
-			panic("Same Hash\n" + str)
+		if _, ok := hashmap[hash]; ok {
+			return nil, errors.New("Same Hash\n" + str)
 		}
 
-		opMap[hash] = function
+		hashmap[hash] = function
 	}
-	return opMap
+	return hashmap, nil
 }

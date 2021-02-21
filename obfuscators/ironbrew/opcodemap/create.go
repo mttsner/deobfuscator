@@ -23,13 +23,6 @@ func (instruction *Instruction) Create() uint32 {
 	return instruction.Func(instruction)
 }
 
-func test() {
-	inst := &Instruction{}
-	self := (*Instruction).createSelf
-	inst.Create = self
-	inst.Create(inst)
-}
-
 func (instruction *Instruction) createABC(op int) uint32 {
 	return uint32(op)<<0          |
 		uint32(instruction.A)<<6  |
