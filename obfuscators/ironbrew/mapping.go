@@ -116,8 +116,7 @@ func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]
 	return data.Opcodemap, nil
 }
 
-// InitMapping generates the lookup table for opcode functions.
-func InitMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
+func initMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 	// We need to detect some variable names or else some opcodes have the same hash.
 	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint", "OP_A", "OP_B", "OP_C", "OP_ENUM", "OP_MOVE"}
 

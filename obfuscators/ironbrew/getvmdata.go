@@ -165,24 +165,34 @@ func (data *vmdata) GetVmdata(chunk []ast.Stmt) (err error) {
 	return nil
 }
 
-func compile(str string) []ast.Stmt {
+func compile(str string) ([]ast.Stmt, error) {
 	chunk, err := parse.Parse(strings.NewReader(str), "")
 	if err != nil {
-		panic(err) //panic("Ironbrew: pattern parsing failed")
+		return nil, err
 	}
-	return chunk
+	return chunk, nil
 }
 
-func initVmdata() {
-	astConstants = compile(strConstants)
-	astInstructions = compile(strInstructions)
-	astPrototypes = compile(strPrototypes)
-	astLineinfo = compile(strLineinfo)
-	astParameters = compile(strParameters)
+func initVmdata() error {
+	toCompile := map[string]*[]ast.Stmt{
+		strConstants:    &astConstants,
+		strInstructions: &astInstructions,
+		strPrototypes:   &astPrototypes,
+		strLineinfo:     &astLineinfo,
+		strParameters:   &astParameters,
 
-	astCompressed = compile(strCompressed)
-	astUncompressed = compile(strUncompressed)
+		strCompressed:   &astCompressed,
+		strUncompressed: &astUncompressed,
 
-	astNormal = compile(strNormal)
-	astWithlineinfo = compile(strWithlineinfo)
+		strNormal:       &astNormal,
+		strWithlineinfo: &astWithlineinfo,
+	}
+	for str, a := range toCompile {
+		chunk, err := parse.Parse(strings.NewReader(str), "")
+		if err != nil {
+			return err
+		}
+		*a = chunk
+	}
+	return nil
 }
