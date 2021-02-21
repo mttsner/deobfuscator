@@ -6,7 +6,7 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-func (data *vmdata) deserialize(Opcodemap map[int]func(*opcodemap.Instruction)uint32) *lua.FunctionProto {
+func (data *vmdata) deserialize(Opcodemap map[int]*opcodemap.Instruction) *lua.FunctionProto {
 	function := helper.NewFunctionProto()
 	for _, v := range data.Order {
 		switch v {
@@ -31,14 +31,31 @@ func (data *vmdata) deserialize(Opcodemap map[int]func(*opcodemap.Instruction)ui
 			}
 		case instructions:
 			var pc int
+			var isSuperop bool
+			var superop opcodemap.SuperOperator
+			
 			instructions := data.gBits32()
 			for i := 0; i < instructions; i++ {
 				descriptor := data.gBits8()
 				if helper.GetBit(descriptor,0,0) == 0 {
 					Type := helper.GetBit(descriptor,1,2)
-					createOpcode := Opcodemap[data.gBits16()]
+					opcode := data.gBits16()
+					instruction := Opcodemap[opcode]
+					
+					if isSuperop {
+						if opcode == 0 {
+							instruction = superop.Instructions[superop.Pos]
+							superop.Pos++
+						} else {
+							isSuperop = false
+						}
+						
+					} else if instruction.IsSuperop {
+						superop = instruction.Superop
+						isSuperop = true
+					}
 
-					instruction := &opcodemap.Instruction{PC: pc}
+					instruction.PC = pc // := &opcodemap.Instruction{PC: pc}
 
 					switch Type {
 					case 0: // ABC
@@ -56,7 +73,7 @@ func (data *vmdata) deserialize(Opcodemap map[int]func(*opcodemap.Instruction)ui
 						instruction.B = data.gBits32() - 65536
 						instruction.C = data.gBits16()
 					}
-					function.Code = append(function.Code, createOpcode(instruction))
+					function.Code = append(function.Code, instruction.Create())
 					pc++
 				}
 			}

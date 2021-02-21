@@ -2,22 +2,23 @@ package deobfuscator
 
 import (
 	"errors"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/notnoobmaster/beautifier"
-	"github.com/notnoobmaster/deobfuscator/opcodemap"
+	"github.com/notnoobmaster/deobfuscator/obfuscators/ironbrew/opcodemap"
 	"github.com/yuin/gopher-lua/ast"
 	"github.com/yuin/gopher-lua/parse"
 )
 
 type mapData struct {
-	Variables   map[string]byte
-	Opcodemap   map[int][]string
-	Hashmap     map[string]opcodemap.CreateSig
+	Delimiter   string
+	Variables   []string
+	Opcodemap   []*opcodemap.Instruction
+	Hashmap     map[string]func(opcodemap.Instruction)
 }
 
-func (data *mapData) solveSuperOp(chunk []ast.Stmt) error {
+func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, error) {
 	pos := 0
 	for pos < len(chunk) {
 		if _, ok := chunk[pos].(*ast.LocalAssignStmt); !ok {
@@ -37,15 +38,17 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) error {
 	return nil
 }
 
-func (data *mapData) chunkToOp(chunk []ast.Stmt) opcodemap.CreateSig {
+func (data *mapData) chunkToOp(chunk []ast.Stmt) (*opcodemap.Instruction, error) {
 	hash := beautifier.GeneratePattern(chunk, data.Variables)
-	//if _, ok := data.Hashmap[hash]; ok {
-	//	return data.solveSuperOp(chunk)
-	//}
-	return data.Hashmap[hash]
+	if _, ok := data.Hashmap[hash]; ok {
+		return data.solveSuperOp(chunk)
+	}
+	inst := opcodemap.Instruction{}
+	inst.Create = data.Hashmap[hash]
+	return &inst, nil
 }
 
-func (s *state) solveIf(stmt *ast.IfStmt) error {
+func (data *mapData) solveIf(stmt *ast.IfStmt) error {
 	relational, ok := stmt.Condition.(*ast.RelationalOpExpr)
 	if !ok {
 		return errors.New("Malformed if statement, no relational operator")
@@ -60,30 +63,30 @@ func (s *state) solveIf(stmt *ast.IfStmt) error {
 	}
 	switch relational.Operator {
 	case "==":
-		op1, err := s.chunkToOp(stmt.Then)
+		op1, err := data.chunkToOp(stmt.Then)
 		if !ok {
 			return err
 		}
-		op2, err := s.chunkToOp(stmt.Else)
+		op2, err := data.chunkToOp(stmt.Else)
 		if !ok {
 			return err
 		}
-		s.Opcodemap[op] = op1
-		s.Opcodemap[op+1] = op2
+		data.Opcodemap[op] = op1
+		data.Opcodemap[op+1] = op2
 	case ">":
-		op1, err := s.chunkToOp(stmt.Else)
+		op1, err := data.chunkToOp(stmt.Else)
 		if !ok {
 			return err
 		}
-		op2, err := s.chunkToOp(stmt.Then)
+		op2, err := data.chunkToOp(stmt.Then)
 		if !ok {
 			return err
 		}
-		s.Opcodemap[op] = op1
-		s.Opcodemap[op+1] = op2
+		data.Opcodemap[op] = op1
+		data.Opcodemap[op+1] = op2
 	case "<=":
 		if inner, ok := stmt.Then[0].(*ast.IfStmt); ok && len(stmt.Then) == 1 {
-			s.solveIf(inner)
+			data.solveIf(inner)
 		} else {
 			return errors.New("Malformed if statement, expected elseif")
 		}
@@ -94,14 +97,11 @@ func (s *state) solveIf(stmt *ast.IfStmt) error {
 }
 
 func generateOpcodemap(vm *vmdata, hashmap map[string]opcodemap.CreateSig) map[int]opcodemap.CreateSig {
-	variables := map[string]byte{
-		vm.Stack :        beautifier.Stack,
-		vm.Instruction :       beautifier.Instruction,
-		vm.Env:        beautifier.Environment,
-		vm.Upvalues:   beautifier.Upvalues,
-		vm.PC: beautifier.Pointer,
+	data := mapData{
+		Variables: []string{vm.Stack, vm.Instruction, vm.Env, vm.Upvalues, vm.PC},
+		Hashmap: hashmap,
 	}
-	solveIf(vm.VMLoop.Stmts)
+	return data.solveIf(vm.VMLoop.Stmts)
 }
 
 // GenerateHashmap generates the lookup table for opcode functions.

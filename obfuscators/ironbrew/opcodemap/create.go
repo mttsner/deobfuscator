@@ -1,5 +1,10 @@
 package opcodemap
 
+type SuperOperator struct {
+	Instructions []*Instruction
+	Pos int
+}
+
 // Instruction holds all the data relevant for creating a instruction. 
 type Instruction struct {
 	A   int
@@ -8,6 +13,9 @@ type Instruction struct {
 	Bx  int
 	sBx int
 	PC  int
+	IsSuperop bool
+	Superop SuperOperator
+	Create func()uint32
 }
 
 func (instruction *Instruction) createABC(op int) uint32 {
