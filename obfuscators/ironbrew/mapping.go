@@ -109,6 +109,7 @@ func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]
 		Variables: variables,
 		Hashmap: hashmap,
 		Opcodemap: make(map[int]*opcodemap.Instruction),
+		Delimiter: opcodemap.Delimiter,
 	}
 	err := data.solveIf(stmt)
 	if err != nil {

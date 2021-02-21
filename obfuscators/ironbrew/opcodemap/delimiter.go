@@ -1,3 +1,3 @@
 package opcodemap
 
-const delimiter = "InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];"
+const Delimiter = "InstrPoint = InstrPoint + 1;Inst = Instr[InstrPoint];"
