@@ -26,7 +26,7 @@ func TestGetVmdata(t *testing.T) {
 }
 
 func TestInitIronbrew(t *testing.T) {
-	err := initIronbrew()
+	err := Initialize()
 	if err != nil {
 		t.Error(err)
 	}

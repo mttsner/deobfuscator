@@ -24,7 +24,7 @@ func Deobfuscate(chunk []ast.Stmt)(*lua.FunctionProto, error)  {
 	return data.deserialize()
 }
 
-// InitIronbrew sets up everything needed for it to work
+// Initialize everything needed for deobfuscation
 func Initialize() error {
 	err := initVmdata()
 	if err != nil {
