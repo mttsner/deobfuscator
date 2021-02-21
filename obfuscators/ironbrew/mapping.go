@@ -1,4 +1,4 @@
-package deobfuscator
+package ironbrew
 
 import (
 	"errors"
@@ -29,13 +29,20 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 	pattern := beautifier.GeneratePattern(chunk[pos:], data.Variables)
 	hashes := strings.Split(pattern, data.Delimiter)
 
+	instruction := opcodemap.Instruction{}
+	superop := opcodemap.SuperOperator{}
+
+	instruction.IsSuperop = true
+	instruction.Superop = superop
+
 	for _, hash := range hashes {
 		if create, ok := data.Hashmap[hash]; ok {
-			// add to something
+			inst := opcodemap.Instruction{Create: create}
+			superop.Instructions = append(superop.Instructions, &inst)
 		}
-		return errors.New("shit hit the fan")
+		return nil, errors.New("shit hit the fan")
 	}
-	return nil
+	return &instruction, nil
 }
 
 func (data *mapData) chunkToOp(chunk []ast.Stmt) (*opcodemap.Instruction, error) {
