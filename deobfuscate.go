@@ -8,6 +8,23 @@ import (
 	"io"
 )
 
+if debug {
+		fmt.Println("Obfuscator:", vm.Obfuscator.Name)
+		fmt.Printf("Obfuscation settings: %+v\n", vm.Settings)
+		fmt.Println("Key:",vm.Key)
+		fmt.Println("Bool:",vm.Bool)
+		fmt.Println("Float:",vm.Float)
+		fmt.Println("String:",vm.String)
+		fmt.Println("Order:", vm.Order)
+		fmt.Println("Upvalues:", vm.Upvalues)
+		fmt.Println("Environment:", vm.Env)
+		fmt.Println("Stack:", vm.Stack)
+		fmt.Println("Instruction:", vm.Instruction)
+		fmt.Println("PC:", vm.PC)
+		fmt.Println("VM loop found:", vm.VMLoop != nil)
+		fmt.Println("Bytecode:", vm.Bytecode)
+	}
+
 type placeholder struct {
 
 }
