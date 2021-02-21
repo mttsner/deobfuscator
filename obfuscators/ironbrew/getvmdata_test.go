@@ -24,6 +24,14 @@ func TestGetVmdata(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestInitIronbrew(t *testing.T) {
+	err := InitIronbrew()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 /*
 func TestMatch(t *testing.T) {
 	target, _ := parse.Parse(strings.NewReader(strTarget), "")
