@@ -16,7 +16,18 @@ type Instruction struct {
 	PC  int
 	IsSuperop bool
 	Superop SuperOperator
-	Create func()uint32
+	Func func(*Instruction)uint32
+}
+
+func (instruction *Instruction) Create() uint32 {
+	return instruction.Func(instruction)
+}
+
+func test() {
+	inst := &Instruction{}
+	self := (*Instruction).createSelf
+	inst.Create = self
+	inst.Create(inst)
 }
 
 func (instruction *Instruction) createABC(op int) uint32 {

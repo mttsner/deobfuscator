@@ -15,7 +15,7 @@ type mapData struct {
 	Delimiter   string
 	Variables   []string
 	Opcodemap   []*opcodemap.Instruction
-	Hashmap     map[string]func(opcodemap.Instruction)
+	Hashmap     map[string]func(*opcodemap.Instruction)uint32
 }
 
 func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, error) {
@@ -37,7 +37,7 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 
 	for _, hash := range hashes {
 		if create, ok := data.Hashmap[hash]; ok {
-			inst := opcodemap.Instruction{Create: create}
+			inst := opcodemap.Instruction{Func: create}
 			superop.Instructions = append(superop.Instructions, &inst)
 		}
 		return nil, errors.New("shit hit the fan")
@@ -51,7 +51,7 @@ func (data *mapData) chunkToOp(chunk []ast.Stmt) (*opcodemap.Instruction, error)
 		return data.solveSuperOp(chunk)
 	}
 	inst := opcodemap.Instruction{}
-	inst.Create = data.Hashmap[hash]
+	inst.Func = data.Hashmap[hash]
 	return &inst, nil
 }
 
