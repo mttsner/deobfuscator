@@ -18,21 +18,21 @@ type mapData struct {
 }
 
 func (data *mapData) solveSuperOp(chunk []ast.Stmt) error {
-	var pos
-	for i < len(chunk) {
+	pos := 0
+	for pos < len(chunk) {
 		if _, ok := chunk[pos].(*ast.LocalAssignStmt); !ok {
 			break
 		}
 		pos++
 	}
 	pattern := beautifier.GeneratePattern(chunk[pos:], data.Variables)
-	hashes := strings.Split(patterm, data.Delimiter)
+	hashes := strings.Split(pattern, data.Delimiter)
 
 	for _, hash := range hashes {
 		if create, ok := data.Hashmap[hash]; ok {
 			// add to something
 		}
-		return erros.New("shit hit the fan")
+		return errors.New("shit hit the fan")
 	}
 	return nil
 }
