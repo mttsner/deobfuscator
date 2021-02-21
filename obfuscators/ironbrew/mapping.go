@@ -26,7 +26,7 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 		}
 		pos++
 	}
-	pattern := beautifier.GeneratePattern(chunk[pos:], data.Variables)
+	pattern := beautifier.GenerateHash(chunk[pos:], data.Variables)
 	hashes := strings.Split(pattern, data.Delimiter)
 
 	instruction := opcodemap.Instruction{}
@@ -46,7 +46,7 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 }
 
 func (data *mapData) chunkToOp(chunk []ast.Stmt) (*opcodemap.Instruction, error) {
-	hash := beautifier.GeneratePattern(chunk, data.Variables)
+	hash := beautifier.GenerateHash(chunk, data.Variables)
 	if _, ok := data.Hashmap[hash]; ok {
 		return data.solveSuperOp(chunk)
 	}
@@ -103,6 +103,7 @@ func (data *mapData) solveIf(stmt *ast.IfStmt) error {
 	return nil
 }
 
+// GenerateOpcodemap solves the vm loop and generates a lookup table for vm opcodes to instruction creation functions
 func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]func(*opcodemap.Instruction)uint32) ([]*opcodemap.Instruction, error) {
 	data := mapData{
 		Variables: variables,
@@ -118,14 +119,7 @@ func GenerateOpcodemap(stmt *ast.IfStmt, variables []string, hashmap map[string]
 // InitMapping generates the lookup table for opcode functions.
 func InitMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 	// We need to detect some variable names or else some opcodes have the same hash.
-	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint"}
-	_ = map[string]byte{
-		"OP_A":       beautifier.A,
-		"OP_B":       beautifier.B,
-		"OP_C":       beautifier.C,
-		"OP_ENUM":    beautifier.MOVE,
-		"OP_MOVE":    beautifier.ENUM,
-	}
+	variables := []string{"Stk", "Inst", "Env", "Upvalues", "InstrPoint", "OP_A", "OP_B", "OP_C", "OP_ENUM", "OP_MOVE"}
 
 	hashmap := make(map[string]func(*opcodemap.Instruction)uint32)
 
@@ -135,7 +129,7 @@ func InitMapping() (map[string]func(*opcodemap.Instruction)uint32, error) {
 			return nil, errors.New("Parsing somehow fucked up when generating the hashmap!\nStr:\n"+str)
 		}
 
-		hash := beautifier.GeneratePattern(chunk, variables)
+		hash := beautifier.GenerateHash(chunk, variables)
 		// Making sure that we accidentally don't have duplicate hashes. 
 		if _, ok := hashmap[hash]; ok {
 			return nil, errors.New("Same Hash\n" + str)
