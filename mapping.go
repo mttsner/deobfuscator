@@ -17,19 +17,24 @@ type mapData struct {
 	Hashmap     map[string]opcodemap.CreateSig
 }
 
-func (data *mapData) solveSuperOp(chunk []ast.Stmt) []string {
-	localassing := identExpr+"="
-	hash := ""
-	for _,exp := range chunk {
-		temp := data.compileStmt(exp)
-		if data.Hashmap[temp] == "Delimiter" {
-			ops = append(ops,data.Hashmap[hash])
-			hash = ""
-			continue
+func (data *mapData) solveSuperOp(chunk []ast.Stmt) error {
+	var pos
+	for i < len(chunk) {
+		if _, ok := chunk[pos].(*ast.LocalAssignStmt); !ok {
+			break
 		}
-		hash += temp
+		pos++
 	}
-	return 
+	pattern := beautifier.GeneratePattern(chunk[pos:], data.Variables)
+	hashes := strings.Split(patterm, data.Delimiter)
+
+	for _, hash := range hashes {
+		if create, ok := data.Hashmap[hash]; ok {
+			// add to something
+		}
+		return erros.New("shit hit the fan")
+	}
+	return nil
 }
 
 func (data *mapData) chunkToOp(chunk []ast.Stmt) opcodemap.CreateSig {
