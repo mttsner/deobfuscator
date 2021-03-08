@@ -35,7 +35,7 @@ func (data *mapData) solveSuperOp(chunk []ast.Stmt) (*opcodemap.Instruction, err
 	superop := opcodemap.SuperOperator{}
 
 	instruction.IsSuperop = true
-	instruction.Superop = superop
+	instruction.Superop = &superop
 
 	for _, hash := range hashes {
 		if create, ok := data.Hashmap[hash]; ok {
@@ -97,9 +97,8 @@ func (data *mapData) solveIf(stmt *ast.IfStmt) error {
 	case "<=":
 		if inner, ok := stmt.Then[0].(*ast.IfStmt); ok && len(stmt.Then) == 1 {
 			return data.solveIf(inner)
-		} else {
-			return errors.New("Malformed if statement, expected elseif")
 		}
+		return errors.New("Malformed if statement, expected elseif")
 	default:
 		return errors.New("Malformed if statement, invalid relational operator")
 	}

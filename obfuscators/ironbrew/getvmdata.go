@@ -156,7 +156,22 @@ var strWithlineinfo string
 var astWithlineinfo []ast.Stmt
 
 func (data *vmdata) withlineinfo(chunk []ast.Stmt) bool {
+	success, exprs, stmts := beautifier.Match(chunk, astWithlineinfo)
+	if !success {
+		return success
+	}
+	key, _ := strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
+	data.Key = byte(key)
+	data.Deserialize = exprs[1].(*ast.FunctionExpr)
+	
+	data.InstPtr = exprs[2].(*ast.IdentExpr).Value
+	data.Stack = exprs[3].(*ast.IdentExpr).Value
+	data.Inst = exprs[4].(*ast.IdentExpr).Value
 
+	data.Upvalues = exprs[5].(*ast.IdentExpr).Value
+	data.Env = exprs[6].(*ast.IdentExpr).Value
+
+	data.Loop = stmts[0].(*ast.IfStmt)
 	return true
 }
 
@@ -164,7 +179,6 @@ func (data *vmdata) getVmdata(chunk []ast.Stmt) (err error) {
 	if !(data.compressed(chunk) || data.uncompressed(chunk)) {
 		return errors.New("Couldn't get VM bytecode")
 	}
-
 	if !(data.normal(chunk) || data.withlineinfo(chunk)) {
 		return errors.New("Couldn't get VM data")
 	}

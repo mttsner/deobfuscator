@@ -36,7 +36,7 @@ func (data *vmdata) deserialize() (*lua.FunctionProto, error) {
 		case instructions:
 			var pc int
 			var isSuperop bool
-			var superop opcodemap.SuperOperator
+			var superop *opcodemap.SuperOperator
 			
 			instructions := data.gBits32()
 			for i := 0; i < instructions; i++ {
@@ -53,14 +53,14 @@ func (data *vmdata) deserialize() (*lua.FunctionProto, error) {
 						} else {
 							isSuperop = false
 						}
-						
 					} else if (*instruction).IsSuperop {
 						superop = instruction.Superop
+						instruction = superop.Instructions[0]
+						superop.Pos++
 						isSuperop = true
 					}
 
 					instruction.PC = pc // := &opcodemap.Instruction{PC: pc}
-
 					switch Type {
 					case 0: // ABC
 						instruction.A = data.gBits16()

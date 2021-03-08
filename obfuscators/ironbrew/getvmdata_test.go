@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/notnoobmaster/beautifier"
 	"github.com/notnoobmaster/deobfuscator/helper"
 	"github.com/yuin/gopher-lua/parse"
 )
@@ -38,6 +39,7 @@ func TestDeobfuscate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	beautifier.Optimize(chunk)
 	Initialize()
 	_, err = Deobfuscate(chunk)
 	if err != nil {
