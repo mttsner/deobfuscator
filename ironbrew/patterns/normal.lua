@@ -7,7 +7,7 @@ local BitXOR = bit and bit.bxor or function(a,b)
 end
 
 local function gBit(Bit, Start, End)
-	if End then end;
+	if End then else end;
 end;
 
 local Pos = 1;
@@ -68,7 +68,7 @@ end;
 local gInt = gBits32;
 local function _R(...) return {...}, Select('#', ...) end
 
-local Deserialize = _FunctionExpr_
+local function _LocalFunctionStmt_() end
 
 local function Wrap(Chunk, _IdentExpr_, _IdentExpr_)
 	local Instr  = Chunk[1];
@@ -107,4 +107,3 @@ local function Wrap(Chunk, _IdentExpr_, _IdentExpr_)
 		end;
     end;
 end;	
-return Wrap(Deserialize(), {}, GetFEnv())();

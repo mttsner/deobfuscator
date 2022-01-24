@@ -4,7 +4,7 @@ end;
 local Pos = 1;
 
 local function gBits32()
-    local W, X, Y, Z = string.byte("", Pos, Pos + 3);
+    local W, X, Y, Z = string.byte(ByteString, Pos, Pos + 3);
 
 	W = BitXOR(W, _NumberExpr_)
 	X = BitXOR(X, 8)
@@ -29,11 +29,13 @@ end;
 local gInt = gBits32;
 local function _R(...) end
 
-local Deserialize = _FunctionExpr_
+local function _LocalFunctionStmt_() end
 
 local PCall = pcall
 local function Wrap(Chunk, _IdentExpr_, _IdentExpr_)
-	L_73_ = (((L_73_ == true) and L_71_()) or L_73_)
+	local Instr = Chunk[1];
+	local Proto = Chunk[2];
+	local Params = Chunk[3];
 	return function(...)
 		local _IdentExpr_ = 1;
 		local Top = -1;
@@ -66,7 +68,6 @@ local function Wrap(Chunk, _IdentExpr_, _IdentExpr_)
 		end;
 
 		A, B = _R(PCall(Loop))
-		if not A[1] then end;
+		if not A[1] then else end;
 	end;
 end;	
-return Wrap(true, {}, GetFEnv())();

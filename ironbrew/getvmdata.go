@@ -3,14 +3,15 @@ package ironbrew
 import (
 	// assigned to _ because go:embed doesn't work without requiring embed
 	_ "embed"
-	"errors"
-	"strconv"
-	"strings"
 
-	"github.com/notnoobmaster/beautifier"
-	"github.com/notnoobmaster/deobfuscator/obfuscators/ironbrew/opcodemap"
-	"github.com/yuin/gopher-lua/ast"
-	"github.com/yuin/gopher-lua/parse"
+	"errors"
+	"strings"
+	"bytes"
+
+	"github.com/notnoobmaster/luautil"
+	"github.com/notnoobmaster/luautil/ast"
+	"github.com/notnoobmaster/luautil/parse"
+	"github.com/notnoobmaster/deobfuscator/ironbrew/opcodemap"
 )
 
 // 1: Arg 2: Protos 3: Instructions
@@ -30,20 +31,19 @@ type settings struct {
 type vmdata struct {
 	Loop        *ast.IfStmt
 	Settings    settings
-	Deserialize *ast.FunctionExpr
-	Opcodemap	map[int]*opcodemap.Instruction
+	Deserialize *ast.LocalFunctionStmt
+	Opcodemap	map[int][]*opcodemap.Instruction
 	Order       []byte
-	Pos         int
 	Key         byte
-	Bool        int
-	Float       int
-	String      int
+	Bool        byte
+	Float       byte
+	String      byte
 	Env         string
 	Upvalues    string
 	Stack		string
 	Inst 		string
 	InstPtr		string
-	Bytecode    []byte
+	Bytecode    *bytes.Buffer
 }
 
 //go:embed "patterns/constants.lua"
@@ -67,27 +67,28 @@ func (data *vmdata) order(chunk []ast.Stmt) bool {
 	for _, stmt := range chunk {
 		switch stmt.(type) {
 		case *ast.NumberForStmt:
-			if success, exprs, _ := beautifier.Match([]ast.Stmt{stmt}, astConstants); success {
-				data.Bool, _ = strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
-				data.Float, _ = strconv.Atoi(exprs[1].(*ast.NumberExpr).Value)
-				data.String, _ = strconv.Atoi(exprs[2].(*ast.NumberExpr).Value)
+			if success, exprs, _ := luautil.Match([]ast.Stmt{stmt}, astConstants); success {
+				data.Bool = byte(exprs[0].(*ast.NumberExpr).Value)
+				data.Float = byte(exprs[1].(*ast.NumberExpr).Value)
+				data.String = byte(exprs[2].(*ast.NumberExpr).Value)
+
 				data.Order = append(data.Order, constants)
 				break
 			}
-			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astInstructions); success {
+			if success, _, _ := luautil.Match([]ast.Stmt{stmt}, astInstructions); success {
 				data.Order = append(data.Order, instructions)
 				break
 			}
-			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astPrototypes); success {
+			if success, _, _ := luautil.Match([]ast.Stmt{stmt}, astPrototypes); success {
 				data.Order = append(data.Order, prototypes)
 				break
 			}
-			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astLineinfo); success {
+			if success, _, _ := luautil.Match([]ast.Stmt{stmt}, astLineinfo); success {
 				data.Order = append(data.Order, lineinfo)
 				break
 			}
 		case *ast.AssignStmt:
-			if success, _, _ := beautifier.Match([]ast.Stmt{stmt}, astParameters); success {
+			if success, _, _ := luautil.Match([]ast.Stmt{stmt}, astParameters); success {
 				data.Order = append(data.Order, parameters)
 			}
 		}
@@ -101,14 +102,14 @@ var strCompressed string
 var astCompressed []ast.Stmt
 
 func (data *vmdata) compressed(chunk []ast.Stmt) bool {
-	success, exprs, _ := beautifier.Match(chunk, astCompressed)
+	success, exprs, _ := luautil.Match(chunk, astCompressed)
 	if !success {
 		return success
 	}
 	byteString := exprs[0].(*ast.StringExpr).Value
 	if bytecode, err := decompress(byteString); err == nil {
 		data.Settings.BytecodeCompress = true
-		data.Bytecode = bytecode
+		data.Bytecode = bytes.NewBuffer(bytecode)
 		return success
 	}
 	return false
@@ -119,11 +120,11 @@ var strUncompressed string
 var astUncompressed []ast.Stmt
 
 func (data *vmdata) uncompressed(chunk []ast.Stmt) bool {
-	success, exprs, _ := beautifier.Match(chunk, astUncompressed)
+	success, exprs, _ := luautil.Match(chunk, astUncompressed)
 	if !success {
 		return success
 	}
-	data.Bytecode = []byte(exprs[0].(*ast.StringExpr).Value)
+	data.Bytecode = bytes.NewBufferString(exprs[0].(*ast.StringExpr).Value)
 	return success
 }
 
@@ -132,22 +133,22 @@ var strNormal string
 var astNormal []ast.Stmt
 
 func (data *vmdata) normal(chunk []ast.Stmt) bool {
-	success, exprs, stmts := beautifier.Match(chunk, astNormal)
+	success, exprs, stmts := luautil.Match(chunk, astNormal)
 	if !success {
 		return success
 	}
-	key, _ := strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
+	key := int(exprs[0].(*ast.NumberExpr).Value)
 	data.Key = byte(key)
-	data.Deserialize = exprs[1].(*ast.FunctionExpr)
+	data.Deserialize = stmts[0].(*ast.LocalFunctionStmt)
 	
-	data.InstPtr = exprs[2].(*ast.IdentExpr).Value
-	data.Stack = exprs[3].(*ast.IdentExpr).Value
-	data.Inst = exprs[4].(*ast.IdentExpr).Value
+	data.InstPtr = exprs[1].(*ast.IdentExpr).Value
+	data.Stack = exprs[2].(*ast.IdentExpr).Value
+	data.Inst = exprs[3].(*ast.IdentExpr).Value
 
-	data.Upvalues = exprs[5].(*ast.IdentExpr).Value
-	data.Env = exprs[6].(*ast.IdentExpr).Value
+	data.Upvalues = exprs[4].(*ast.IdentExpr).Value
+	data.Env = exprs[5].(*ast.IdentExpr).Value
 
-	data.Loop = stmts[0].(*ast.IfStmt)
+	data.Loop = stmts[1].(*ast.IfStmt)
 	return success
 }
 
@@ -156,35 +157,36 @@ var strWithlineinfo string
 var astWithlineinfo []ast.Stmt
 
 func (data *vmdata) withlineinfo(chunk []ast.Stmt) bool {
-	success, exprs, stmts := beautifier.Match(chunk, astWithlineinfo)
+	success, exprs, stmts := luautil.Match(chunk, astWithlineinfo)
 	if !success {
 		return success
 	}
-	key, _ := strconv.Atoi(exprs[0].(*ast.NumberExpr).Value)
-	data.Key = byte(key)
-	data.Deserialize = exprs[1].(*ast.FunctionExpr)
+
+	data.Key = byte(exprs[0].(*ast.NumberExpr).Value)
+	data.Deserialize = stmts[0].(*ast.LocalFunctionStmt)
 	
-	data.InstPtr = exprs[2].(*ast.IdentExpr).Value
-	data.Stack = exprs[3].(*ast.IdentExpr).Value
-	data.Inst = exprs[4].(*ast.IdentExpr).Value
+	data.InstPtr = exprs[1].(*ast.IdentExpr).Value
+	data.Stack = exprs[2].(*ast.IdentExpr).Value
+	data.Inst = exprs[3].(*ast.IdentExpr).Value
 
-	data.Upvalues = exprs[5].(*ast.IdentExpr).Value
-	data.Env = exprs[6].(*ast.IdentExpr).Value
+	data.Upvalues = exprs[4].(*ast.IdentExpr).Value
+	data.Env = exprs[5].(*ast.IdentExpr).Value
 
-	data.Loop = stmts[0].(*ast.IfStmt)
+	data.Loop = stmts[1].(*ast.IfStmt)
 	return true
 }
 
 func (data *vmdata) getVmdata(chunk []ast.Stmt) (err error) {
 	if !(data.compressed(chunk) || data.uncompressed(chunk)) {
-		return errors.New("Couldn't get VM bytecode")
-	}
-	if !(data.normal(chunk) || data.withlineinfo(chunk)) {
-		return errors.New("Couldn't get VM data")
+		return errors.New("couldn't get VM bytecode")
 	}
 
-	if !data.order(data.Deserialize.Stmts) {
-		return errors.New("Couldn't get order")
+	if !(data.normal(chunk) || data.withlineinfo(chunk)) {
+		return errors.New("couldn't get VM data")
+	}
+
+	if !data.order(data.Deserialize.Func.Chunk) {
+		return errors.New("couldn't get order")
 	}
 
 	return nil
@@ -198,7 +200,7 @@ func compile(str string) ([]ast.Stmt, error) {
 	return chunk, nil
 }
 
-func initVmdata() error {
+func initVmdata() {
 	toCompile := map[string]*[]ast.Stmt{
 		strConstants:    &astConstants,
 		strInstructions: &astInstructions,
@@ -215,9 +217,8 @@ func initVmdata() error {
 	for str, a := range toCompile {
 		chunk, err := parse.Parse(strings.NewReader(str), "")
 		if err != nil {
-			return err
+			panic(err)
 		}
 		*a = chunk
 	}
-	return nil
 }

@@ -5,9 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/notnoobmaster/beautifier"
+	"github.com/notnoobmaster/luautil/parse"
 	"github.com/notnoobmaster/deobfuscator/helper"
-	"github.com/yuin/gopher-lua/parse"
 )
 
 //go:embed test.lua
@@ -22,13 +21,6 @@ func TestGetVmdata(t *testing.T) {
 	data := vmdata{}
 	err = data.getVmdata(chunk)
 	t.Logf("%#v", data)
-	if err == nil {
-		t.Error(err)
-	}
-}
-
-func TestInitIronbrew(t *testing.T) {
-	err := Initialize()
 	if err != nil {
 		t.Error(err)
 	}
@@ -39,11 +31,13 @@ func TestDeobfuscate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	beautifier.Optimize(chunk)
+	//beautifier.Optimize(chunk)
 	Initialize()
-	_, err = Deobfuscate(chunk)
+	out, err := Deobfuscate(chunk)
+	out.DbgSourcePositions = make([]int, len(out.Code))
+	t.Log(out.String())
 	if err != nil {
-		t.Error(err)
+		t.Error(out)
 	}
 }
 
@@ -74,8 +68,8 @@ func TestHash(t *testing.T) {
 		"OP_ENUM": helper.NumberExpr, 
 		"OP_MOVE": helper.NumberExpr,
 	}
-	hash1 := helper.GenerateHashWithReplace(chunk1, variables, replace)
-	hash2 := helper.GenerateHash(chunk2, variables)
+	hash1 := helper.GenerateSignatureWithReplace(chunk1, variables, replace)
+	hash2 := helper.GenerateSignature(chunk2, variables)
 	if hash1 != hash2 {
 		t.Error(hash1, hash2)
 	}

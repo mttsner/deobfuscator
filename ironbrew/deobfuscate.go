@@ -1,18 +1,16 @@
 package ironbrew
 
 import (
-	"fmt"
-
-	"github.com/notnoobmaster/deobfuscator/obfuscators/ironbrew/opcodemap"
-	lua "github.com/yuin/gopher-lua"
-	"github.com/yuin/gopher-lua/ast"
+	"github.com/notnoobmaster/deobfuscator/ironbrew/opcodemap"
+	"github.com/notnoobmaster/deobfuscator/helper"
+	"github.com/notnoobmaster/luautil/ast"
 )
 
 //const debug = false
 var hashmap map[string]func(*opcodemap.Instruction)uint32
 
 // Deobfuscate ironbrew
-func Deobfuscate(chunk []ast.Stmt)(*lua.FunctionProto, error)  {
+func Deobfuscate(chunk []ast.Stmt)(*helper.FunctionProto, error)  {
 	data := vmdata{}
 	err := data.getVmdata(chunk)
 	if err != nil {
@@ -27,17 +25,9 @@ func Deobfuscate(chunk []ast.Stmt)(*lua.FunctionProto, error)  {
 }
 
 // Initialize everything needed for deobfuscation
-func Initialize() error {
-	err := initVmdata()
-	if err != nil {
-		return err
-	}
-	hashmap, err = initMapping()
-	fmt.Print(len(hashmap))
-	if err != nil {
-		return err
-	}
-	return nil
+func Initialize() {
+	initVmdata()
+	hashmap = initMapping()
 }
 
 /*
