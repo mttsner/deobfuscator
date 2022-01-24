@@ -1,5 +1,0 @@
-image:
-  file: .gitpod.Dockerfile
-tasks:
-  - init: git config --global url."https://${username}:${personal_access_token}@github.com/notnoobmaster".insteadOf "https://github.com/notnoobmaster" && go get && go build ./... && go test ./...
-    command: go run
