@@ -2,7 +2,8 @@ package helper
 
 import (
 	"bytes"
-	"github.com/yuin/gopher-lua/ast"
+
+	"github.com/notnoobmaster/luautil/ast"
 )
 
 const (
@@ -11,7 +12,8 @@ const (
 	repeatStmt
 	whileStmt
 	assignStmt
-	funcDefStmt
+	localFunctionStmt
+	functionStmt
 	funcCallStmt
 	numberForStmt
 	genericForStmt
@@ -20,6 +22,8 @@ const (
 	breakStmt
 	returnStmt
 	localAssignStmt
+	compoundAssignStmt
+	continueStmt
 	// Expr
 	stringExpr
 	// NumberExpr value
@@ -34,9 +38,7 @@ const (
 	tableExpr
 	arithmeticExpr
 	stringConcatExpr
-	minusExpr
-	notExpr
-	lenExpr
+	unaryExpr
 	relationalExpr
 	logicalExpr
 	funcCallExpr
@@ -51,8 +53,8 @@ type data struct {
 	Variables map[string]byte
 }
 
-//GenerateHash generates a tree pattern
-func GenerateHash(chunk []ast.Stmt, variables []string) string {
+//GenerateSignature generates a tree pattern
+func GenerateSignature(chunk []ast.Stmt, variables []string) string {
 	s := &data{
 		Hash: new(bytes.Buffer),
 		Variables: make(map[string]byte),
@@ -65,7 +67,7 @@ func GenerateHash(chunk []ast.Stmt, variables []string) string {
 }
 
 //GenerateHash generates a tree pattern
-func GenerateHashWithReplace(chunk []ast.Stmt, variables []string, replace map[string]byte) string {
+func GenerateSignatureWithReplace(chunk []ast.Stmt, variables []string, replace map[string]byte) string {
 	s := &data{
 		Hash: new(bytes.Buffer),
 		Variables: make(map[string]byte),
@@ -113,14 +115,9 @@ func (s *data) traverseExpr(expr ast.Expr) {
 		s.Hash.WriteByte(stringConcatExpr)
 		s.traverseExpr(ex.Lhs)
 		s.traverseExpr(ex.Rhs)
-	case *ast.UnaryMinusOpExpr:
-		s.Hash.WriteByte(minusExpr)
-		s.traverseExpr(ex.Expr)
-	case *ast.UnaryNotOpExpr:
-		s.Hash.WriteByte(notExpr)
-		s.traverseExpr(ex.Expr)
-	case *ast.UnaryLenOpExpr:
-		s.Hash.WriteByte(lenExpr)
+	case *ast.UnaryOpExpr:
+		s.Hash.WriteByte(unaryExpr)
+		s.Hash.WriteString(ex.Operator)
 		s.traverseExpr(ex.Expr)
 	case *ast.RelationalOpExpr:
 		s.Hash.WriteByte(relationalExpr)
@@ -162,7 +159,7 @@ func (s *data) traverseExpr(expr ast.Expr) {
 		if ex.ParList.HasVargs {
 			s.Hash.WriteByte(varArg)
 		}
-		s.traverseStmts(ex.Stmts)
+		s.traverseStmts(ex.Chunk)
 	}
 }
 
@@ -171,6 +168,11 @@ func (s *data) traverseStmts(chunk []ast.Stmt) {
 		switch stmt := st.(type) {
 		case *ast.AssignStmt:
 			s.Hash.WriteByte(assignStmt)
+			s.traverseExprs(stmt.Lhs)
+			s.traverseExprs(stmt.Rhs)
+		case *ast.CompoundAssignStmt:
+			s.Hash.WriteByte(compoundAssignStmt)
+			s.Hash.WriteString(stmt.Operator)
 			s.traverseExprs(stmt.Lhs)
 			s.traverseExprs(stmt.Rhs)
 		case *ast.LocalAssignStmt:
@@ -190,24 +192,28 @@ func (s *data) traverseStmts(chunk []ast.Stmt) {
 			s.traverseExprs(ex.Args)
 		case *ast.DoBlockStmt:
 			s.Hash.WriteByte(doBlockStmt)
-			s.traverseStmts(stmt.Stmts)
+			s.traverseStmts(stmt.Chunk)
 		case *ast.WhileStmt:
 			s.Hash.WriteByte(whileStmt)
 			s.traverseExpr(stmt.Condition)
-			s.traverseStmts(stmt.Stmts)
+			s.traverseStmts(stmt.Chunk)
 		case *ast.RepeatStmt:
 			s.Hash.WriteByte(repeatStmt)
 			s.traverseExpr(stmt.Condition)
-			s.traverseStmts(stmt.Stmts)
-		case *ast.FuncDefStmt:
-			s.Hash.WriteByte(funcDefStmt)
+			s.traverseStmts(stmt.Chunk)
+		case *ast.LocalFunctionStmt:
+			s.Hash.WriteByte(localFunctionStmt)
+			s.Hash.WriteString(stmt.Name)
+			s.traverseExpr(stmt.Func)
+		case *ast.FunctionStmt:
+			s.Hash.WriteByte(functionStmt)
 			for range stmt.Func.ParList.Names {
 				s.Hash.WriteByte(identExpr)
 			}
 			if stmt.Func.ParList.HasVargs {
 				s.Hash.WriteByte(varArg)
 			}
-			s.traverseStmts(stmt.Func.Stmts)
+			s.traverseStmts(stmt.Func.Chunk)
 		case *ast.ReturnStmt:
 			s.Hash.WriteByte(returnStmt)
 			s.traverseExprs(stmt.Exprs)
@@ -220,6 +226,8 @@ func (s *data) traverseStmts(chunk []ast.Stmt) {
 			}
 		case *ast.BreakStmt:
 			s.Hash.WriteByte(breakStmt)
+		case *ast.ContinueStmt:
+			s.Hash.WriteByte(continueStmt)
 		case *ast.NumberForStmt:
 			s.Hash.WriteByte(numberForStmt)
 			s.traverseExpr(stmt.Init)
@@ -227,11 +235,11 @@ func (s *data) traverseStmts(chunk []ast.Stmt) {
 			if stmt.Step != nil {
 				s.traverseExpr(stmt.Step)
 			}
-			s.traverseStmts(stmt.Stmts)
+			s.traverseStmts(stmt.Chunk)
 		case *ast.GenericForStmt:
 			s.Hash.WriteByte(genericForStmt)
 			s.traverseExprs(stmt.Exprs)
-			s.traverseStmts(stmt.Stmts)
+			s.traverseStmts(stmt.Chunk)
 		}
 	}
 }
